@@ -18,15 +18,14 @@ export const authService = {
       throw new UnauthorizedError('Usuário ou senha inválidos');
     }
 
-    const token = gerarToken({ id: encontrado.id, nome: encontrado.nome, perfil: encontrado.perfil });
-
     return {
-      token,
+      token: gerarToken(encontrado.id),
       usuario: {
         id: encontrado.id,
         nome: encontrado.nome,
         usuario: encontrado.usuario,
         perfil: encontrado.perfil,
+        corAvatar: encontrado.corAvatar,
       },
     };
   },

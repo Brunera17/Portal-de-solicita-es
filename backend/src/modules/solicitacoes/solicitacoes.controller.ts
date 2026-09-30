@@ -1,11 +1,7 @@
 import type { Request, Response } from 'express';
 import { usuarioDaRequisicao } from '../../middlewares/authenticate';
-import {
-  alterarStatusSchema,
-  idParamSchema,
-  listarSolicitacoesSchema,
-  solicitacaoSchema,
-} from './solicitacoes.schemas';
+import { idParamSchema } from '../../lib/schemas';
+import { alterarStatusSchema, listarSolicitacoesSchema, solicitacaoSchema } from './solicitacoes.schemas';
 import { solicitacoesService } from './solicitacoes.service';
 
 export const solicitacoesController = {

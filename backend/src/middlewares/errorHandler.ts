@@ -30,9 +30,18 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
-    res.status(404).json(body('NOT_FOUND', 'Recurso não encontrado'));
-    return;
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2025') {
+      res.status(404).json(body('NOT_FOUND', 'Recurso não encontrado'));
+      return;
+    }
+    // Violação de UNIQUE (ex.: nome de usuário ou de categoria repetido)
+    if (err.code === 'P2002') {
+      const campos = (err.meta?.target as string[] | undefined) ?? [];
+      const details = campos.map((campo) => ({ campo, mensagem: 'Este valor já está em uso' }));
+      res.status(409).json(body('DUPLICADO', 'Já existe um registro com este valor', details));
+      return;
+    }
   }
 
   // JSON malformado no corpo da requisição

@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { prisma } from './lib/prisma';
 import { authRoutes } from './modules/auth/auth.routes';
+import { categoriasRoutes } from './modules/categorias/categorias.routes';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
 import { solicitacoesRoutes } from './modules/solicitacoes/solicitacoes.routes';
+import { perfilRoutes, usuariosRoutes } from './modules/usuarios/usuarios.routes';
 
 export const routes = Router();
 
@@ -12,5 +14,8 @@ routes.get('/health', async (_req, res) => {
 });
 
 routes.use('/auth', authRoutes);
+routes.use('/perfil', perfilRoutes);
 routes.use('/solicitacoes', solicitacoesRoutes);
+routes.use('/categorias', categoriasRoutes);
+routes.use('/usuarios', usuariosRoutes);
 routes.use('/dashboard', dashboardRoutes);

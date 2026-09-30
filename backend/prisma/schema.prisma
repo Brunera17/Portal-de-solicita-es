@@ -7,21 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Hierarquia: SOLICITANTE < ATENDENTE < GERENTE
 enum Perfil {
   SOLICITANTE
   ATENDENTE
+  GERENTE
 
   @@map("perfil_usuario")
-}
-
-enum Categoria {
-  TI
-  RH
-  COMPRAS
-  FINANCEIRO
-  INFRAESTRUTURA
-
-  @@map("categoria_solicitacao")
 }
 
 enum StatusSolicitacao {
@@ -33,35 +25,52 @@ enum StatusSolicitacao {
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nome      String   @db.VarChar(100)
-  usuario   String   @unique @db.VarChar(50)
-  senhaHash String   @map("senha_hash") @db.VarChar(255)
-  perfil    Perfil   @default(SOLICITANTE)
-  ativo     Boolean  @default(true)
-  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  id           Int      @id @default(autoincrement())
+  nome         String   @db.VarChar(100)
+  usuario      String   @unique @db.VarChar(50)
+  senhaHash    String   @map("senha_hash") @db.VarChar(255)
+  perfil       Perfil   @default(SOLICITANTE)
+  corAvatar    String   @default("indigo") @map("cor_avatar") @db.VarChar(20)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
-  solicitacoes      Solicitacao[]
-  alteracoesStatus  HistoricoStatus[]
+  solicitacoes     Solicitacao[]
+  alteracoesStatus HistoricoStatus[]
+  comentarios      Comentario[]
 
   @@map("usuarios")
+}
+
+/// Categorias administradas pelo gerente. Categorias em uso não são excluídas, apenas desativadas.
+model Categoria {
+  id       Int      @id @default(autoincrement())
+  nome     String   @unique @db.VarChar(50)
+  ativa    Boolean  @default(true)
+  criadoEm DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  solicitacoes Solicitacao[]
+
+  @@map("categorias")
 }
 
 model Solicitacao {
   id            Int               @id @default(autoincrement())
   titulo        String            @db.VarChar(150)
   descricao     String            @db.Text
-  categoria     Categoria
+  categoriaId   Int               @map("categoria_id")
   status        StatusSolicitacao @default(ABERTO)
   solicitanteId Int               @map("solicitante_id")
   criadoEm      DateTime          @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm  DateTime          @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
+  categoria   Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
   solicitante Usuario           @relation(fields: [solicitanteId], references: [id], onDelete: Restrict)
   historico   HistoricoStatus[]
+  comentarios Comentario[]
 
   @@index([status])
-  @@index([categoria])
+  @@index([categoriaId])
   @@index([criadoEm])
   @@index([solicitanteId])
   @@map("solicitacoes")
@@ -80,4 +89,20 @@ model HistoricoStatus {
 
   @@index([solicitacaoId])
   @@map("historico_status")
+}
+
+/// Comentários são imutáveis (trilha de auditoria). Comentários internos só são visíveis à equipe.
+model Comentario {
+  id            Int      @id @default(autoincrement())
+  solicitacaoId Int      @map("solicitacao_id")
+  autorId       Int      @map("autor_id")
+  texto         String   @db.Text
+  interno       Boolean  @default(false)
+  criadoEm      DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  solicitacao Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  autor       Usuario     @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([solicitacaoId, criadoEm])
+  @@map("comentarios")
 }

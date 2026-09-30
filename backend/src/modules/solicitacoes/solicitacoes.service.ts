@@ -1,6 +1,8 @@
-import { Perfil, type StatusSolicitacao } from '@prisma/client';
+import type { StatusSolicitacao } from '@prisma/client';
 import { AppError, BusinessRuleError, ForbiddenError, NotFoundError } from '../../errors/AppError';
+import { ehEquipe } from '../../lib/permissoes';
 import type { UsuarioAutenticado } from '../../types/express';
+import { categoriasRepository, type CategoriasRepository } from '../categorias/categorias.repository';
 import {
   solicitacoesRepository,
   type SolicitacaoDetalhe,
@@ -23,12 +25,31 @@ function solicitacaoNaoAberta() {
   );
 }
 
-/** Solicitantes só enxergam as próprias solicitações; atendentes enxergam todas. */
+/** Solicitantes só enxergam as próprias solicitações; a equipe (atendente/gerente) enxerga todas. */
 export function escopoDoUsuario(usuario: UsuarioAutenticado): number | undefined {
-  return usuario.perfil === Perfil.SOLICITANTE ? usuario.id : undefined;
+  return ehEquipe(usuario.perfil) ? undefined : usuario.id;
 }
 
-export function criarSolicitacoesService(repo: SolicitacoesRepository) {
+interface Dependencias {
+  repo: SolicitacoesRepository;
+  categorias: Pick<CategoriasRepository, 'buscarPorId'>;
+}
+
+export function criarSolicitacoesService({ repo, categorias }: Dependencias) {
+  /**
+   * Novas solicitações exigem categoria ativa. Na edição, manter a categoria atual é
+   * permitido mesmo que ela tenha sido desativada depois da abertura.
+   */
+  async function validarCategoria(categoriaId: number, categoriaAtualId?: number) {
+    const categoria = await categorias.buscarPorId(categoriaId);
+    if (!categoria) {
+      throw new BusinessRuleError('Categoria não encontrada', 'CATEGORIA_INVALIDA');
+    }
+    if (!categoria.ativa && categoria.id !== categoriaAtualId) {
+      throw new BusinessRuleError(`A categoria "${categoria.nome}" está desativada`, 'CATEGORIA_INATIVA');
+    }
+  }
+
   async function buscarVisivel(id: number, usuario: UsuarioAutenticado): Promise<SolicitacaoDetalhe> {
     const solicitacao = await repo.buscarPorId(id);
     if (!solicitacao) {
@@ -59,7 +80,7 @@ export function criarSolicitacoesService(repo: SolicitacoesRepository) {
       const { itens, total } = await repo.listar(
         {
           solicitanteId: escopoDoUsuario(usuario),
-          categoria: filtros.categoria,
+          categoriaId: filtros.categoriaId,
           status: filtros.status,
           tituloContem: filtros.q,
           criadoDesde: filtros.dataInicio ? inicioDoDia(filtros.dataInicio) : undefined,
@@ -79,12 +100,14 @@ export function criarSolicitacoesService(repo: SolicitacoesRepository) {
       return buscarVisivel(id, usuario);
     },
 
-    criar(dados: SolicitacaoInput, usuario: UsuarioAutenticado) {
+    async criar(dados: SolicitacaoInput, usuario: UsuarioAutenticado) {
+      await validarCategoria(dados.categoriaId);
       return repo.criar(dados, usuario.id);
     },
 
     async atualizar(id: number, dados: SolicitacaoInput, usuario: UsuarioAutenticado) {
-      await buscarParaAlteracao(id, usuario);
+      const atual = await buscarParaAlteracao(id, usuario);
+      await validarCategoria(dados.categoriaId, atual.categoria.id);
       if (!(await repo.atualizarSeAberta(id, dados))) {
         throw solicitacaoNaoAberta();
       }
@@ -130,4 +153,7 @@ export function criarSolicitacoesService(repo: SolicitacoesRepository) {
   };
 }
 
-export const solicitacoesService = criarSolicitacoesService(solicitacoesRepository);
+export const solicitacoesService = criarSolicitacoesService({
+  repo: solicitacoesRepository,
+  categorias: categoriasRepository,
+});

@@ -1,33 +1,26 @@
 import jwt from 'jsonwebtoken';
-import { Perfil } from '@prisma/client';
 import { env } from '../../config/env';
 import { UnauthorizedError } from '../../errors/AppError';
-import type { UsuarioAutenticado } from '../../types/express';
 
-interface TokenPayload {
-  sub: string;
-  nome: string;
-  perfil: Perfil;
-}
-
-export function gerarToken(usuario: UsuarioAutenticado): string {
-  const payload: TokenPayload = { sub: String(usuario.id), nome: usuario.nome, perfil: usuario.perfil };
-  return jwt.sign(payload, env.JWT_SECRET, {
+/**
+ * O token carrega apenas o id do usuário. Nome, perfil e situação (ativo) são lidos
+ * do banco a cada requisição, para que mudanças feitas pelo gerente valham na hora.
+ */
+export function gerarToken(usuarioId: number): string {
+  return jwt.sign({}, env.JWT_SECRET, {
+    subject: String(usuarioId),
     algorithm: 'HS256',
     expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'],
   });
 }
 
-export function verificarToken(token: string): UsuarioAutenticado {
+/** Retorna o id do usuário do token ou lança 401. */
+export function verificarToken(token: string): number {
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as TokenPayload;
-    const id = Number(payload.sub);
-
-    if (!Number.isInteger(id) || !Object.values(Perfil).includes(payload.perfil)) {
-      throw new UnauthorizedError('Token inválido');
-    }
-
-    return { id, nome: payload.nome, perfil: payload.perfil };
+    const { sub } = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] }) as jwt.JwtPayload;
+    const id = Number(sub);
+    if (!Number.isInteger(id) || id <= 0) throw new Error('sub inválido');
+    return id;
   } catch {
     throw new UnauthorizedError('Sessão inválida ou expirada. Faça login novamente.');
   }

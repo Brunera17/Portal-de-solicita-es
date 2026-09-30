@@ -4,8 +4,8 @@ import { popularBanco } from './seed-data';
 const prisma = new PrismaClient();
 
 popularBanco(prisma)
-  .then(({ usuarios, solicitacoes }) => {
-    console.log(`Seed concluído: ${usuarios} usuários, ${solicitacoes} solicitações.`);
+  .then(({ usuarios, categorias, solicitacoes }) => {
+    console.log(`Seed concluído: ${usuarios} usuários, ${categorias} categorias, ${solicitacoes} solicitações.`);
   })
   .catch((e) => {
     console.error(e);

@@ -1,4 +1,4 @@
-import { Prisma, StatusSolicitacao, type Categoria } from '@prisma/client';
+import { Prisma, StatusSolicitacao } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 import type { SolicitacaoInput } from './solicitacoes.schemas';
 
@@ -6,7 +6,7 @@ export interface FiltrosSolicitacao {
   solicitanteId?: number;
   criadoDesde?: Date;
   criadoAntesDe?: Date;
-  categoria?: Categoria;
+  categoriaId?: number;
   status?: StatusSolicitacao;
   tituloContem?: string;
 }
@@ -14,11 +14,11 @@ export interface FiltrosSolicitacao {
 const resumoSelect = {
   id: true,
   titulo: true,
-  categoria: true,
+  categoria: { select: { id: true, nome: true } },
   status: true,
   criadoEm: true,
   atualizadoEm: true,
-  solicitante: { select: { id: true, nome: true } },
+  solicitante: { select: { id: true, nome: true, corAvatar: true } },
 } satisfies Prisma.SolicitacaoSelect;
 
 const detalheSelect = {
@@ -31,7 +31,7 @@ const detalheSelect = {
       statusAnterior: true,
       statusNovo: true,
       alteradoEm: true,
-      alteradoPor: { select: { id: true, nome: true } },
+      alteradoPor: { select: { id: true, nome: true, corAvatar: true } },
     },
   },
 } satisfies Prisma.SolicitacaoSelect;
@@ -41,7 +41,7 @@ export type SolicitacaoDetalhe = Prisma.SolicitacaoGetPayload<{ select: typeof d
 function montarWhere(f: FiltrosSolicitacao): Prisma.SolicitacaoWhereInput {
   return {
     solicitanteId: f.solicitanteId,
-    categoria: f.categoria,
+    categoriaId: f.categoriaId,
     status: f.status,
     criadoEm: f.criadoDesde || f.criadoAntesDe ? { gte: f.criadoDesde, lt: f.criadoAntesDe } : undefined,
     titulo: f.tituloContem ? { contains: f.tituloContem, mode: 'insensitive' } : undefined,

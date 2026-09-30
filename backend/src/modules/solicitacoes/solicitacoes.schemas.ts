@@ -1,15 +1,16 @@
 import { z } from 'zod';
-import { Categoria, StatusSolicitacao } from '@prisma/client';
+import { StatusSolicitacao } from '@prisma/client';
 
-/** Trata parâmetros de query vazios (`?categoria=`) como ausentes. */
+/** Trata parâmetros de query vazios (`?categoriaId=`) como ausentes. */
 const opcional = <T extends z.ZodType>(schema: T) =>
   z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
 
 const dataSchema = z.iso.date({ error: 'Data inválida (use o formato AAAA-MM-DD)' });
 
-export const idParamSchema = z.object({
-  id: z.coerce.number({ error: 'Código inválido' }).int('Código inválido').positive('Código inválido'),
-});
+const categoriaIdSchema = z.coerce
+  .number({ error: 'Selecione uma categoria' })
+  .int('Categoria inválida')
+  .positive('Selecione uma categoria');
 
 export const solicitacaoSchema = z.object({
   titulo: z
@@ -22,7 +23,7 @@ export const solicitacaoSchema = z.object({
     .trim()
     .min(10, 'A descrição deve ter pelo menos 10 caracteres')
     .max(5000, 'A descrição deve ter no máximo 5000 caracteres'),
-  categoria: z.enum(Categoria, { error: 'Categoria inválida' }),
+  categoriaId: categoriaIdSchema,
 });
 
 export const alterarStatusSchema = z.object({
@@ -33,7 +34,7 @@ export const listarSolicitacoesSchema = z
   .object({
     dataInicio: opcional(dataSchema),
     dataFim: opcional(dataSchema),
-    categoria: opcional(z.enum(Categoria, { error: 'Categoria inválida' })),
+    categoriaId: opcional(categoriaIdSchema),
     status: opcional(z.enum(StatusSolicitacao, { error: 'Status inválido' })),
     q: opcional(z.string().trim().max(150, 'A busca deve ter no máximo 150 caracteres')),
     pagina: z.coerce.number().int().min(1, 'Página inválida').default(1),

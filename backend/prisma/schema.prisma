@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  SOLICITANTE
+  ATENDENTE
+
+  @@map("perfil_usuario")
+}
+
+enum Categoria {
+  TI
+  RH
+  COMPRAS
+  FINANCEIRO
+  INFRAESTRUTURA
+
+  @@map("categoria_solicitacao")
+}
+
+enum StatusSolicitacao {
+  ABERTO
+  EM_ATENDIMENTO
+  CONCLUIDO
+
+  @@map("status_solicitacao")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nome      String   @db.VarChar(100)
+  usuario   String   @unique @db.VarChar(50)
+  senhaHash String   @map("senha_hash") @db.VarChar(255)
+  perfil    Perfil   @default(SOLICITANTE)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  solicitacoes      Solicitacao[]
+  alteracoesStatus  HistoricoStatus[]
+
+  @@map("usuarios")
+}
+
+model Solicitacao {
+  id            Int               @id @default(autoincrement())
+  titulo        String            @db.VarChar(150)
+  descricao     String            @db.Text
+  categoria     Categoria
+  status        StatusSolicitacao @default(ABERTO)
+  solicitanteId Int               @map("solicitante_id")
+  criadoEm      DateTime          @default(now()) @map("criado_em") @db.Timestamptz(3)
+  atualizadoEm  DateTime          @updatedAt @map("atualizado_em") @db.Timestamptz(3)
+
+  solicitante Usuario           @relation(fields: [solicitanteId], references: [id], onDelete: Restrict)
+  historico   HistoricoStatus[]
+
+  @@index([status])
+  @@index([categoria])
+  @@index([criadoEm])
+  @@index([solicitanteId])
+  @@map("solicitacoes")
+}
+
+model HistoricoStatus {
+  id             Int                @id @default(autoincrement())
+  solicitacaoId  Int                @map("solicitacao_id")
+  statusAnterior StatusSolicitacao? @map("status_anterior")
+  statusNovo     StatusSolicitacao  @map("status_novo")
+  alteradoPorId  Int                @map("alterado_por_id")
+  alteradoEm     DateTime           @default(now()) @map("alterado_em") @db.Timestamptz(3)
+
+  solicitacao Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  alteradoPor Usuario     @relation(fields: [alteradoPorId], references: [id], onDelete: Restrict)
+
+  @@index([solicitacaoId])
+  @@map("historico_status")
+}

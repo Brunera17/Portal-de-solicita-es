@@ -14,6 +14,7 @@ import { CategoriaBadge, StatusBadge } from '@/components/ui/Badges'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Campo, Input, Select } from '@/components/ui/Campo'
 import { Card } from '@/components/ui/Card'
+import { CampoData } from '@/components/ui/CampoData'
 import { Carregando, ErroCarregamento, Vazio } from '@/components/ui/Estados'
 import { Paginacao } from '@/components/ui/Paginacao'
 import { Spinner } from '@/components/ui/Spinner'
@@ -128,22 +129,20 @@ export function SolicitacoesPage() {
             </Campo>
 
             <Campo id="filtro-inicio" rotulo="Aberta de" className="lg:col-span-2">
-              <Input
+              <CampoData
                 id="filtro-inicio"
-                type="date"
-                value={filtros.dataInicio ?? ''}
+                valor={filtros.dataInicio ?? ''}
                 max={filtros.dataFim}
-                onChange={(e) => atualizar({ dataInicio: e.target.value })}
+                onConfirmar={(dataInicio) => atualizar({ dataInicio })}
               />
             </Campo>
 
             <Campo id="filtro-fim" rotulo="até" className="lg:col-span-2">
-              <Input
+              <CampoData
                 id="filtro-fim"
-                type="date"
-                value={filtros.dataFim ?? ''}
+                valor={filtros.dataFim ?? ''}
                 min={filtros.dataInicio}
-                onChange={(e) => atualizar({ dataFim: e.target.value })}
+                onConfirmar={(dataFim) => atualizar({ dataFim })}
               />
             </Campo>
           </div>

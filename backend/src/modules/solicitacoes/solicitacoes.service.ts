@@ -2,7 +2,7 @@ import type { StatusSolicitacao } from '@prisma/client';
 import { AppError, BusinessRuleError, ForbiddenError, NotFoundError } from '../../errors/AppError';
 import { ehEquipe } from '../../lib/permissoes';
 import type { UsuarioAutenticado } from '../../types/express';
-import { categoriasRepository, type CategoriasRepository } from '../categorias/categorias.repository';
+import { categoriasRepository } from '../categorias/categorias.repository';
 import {
   solicitacoesRepository,
   type SolicitacaoDetalhe,
@@ -32,7 +32,8 @@ export function escopoDoUsuario(usuario: UsuarioAutenticado): number | undefined
 
 interface Dependencias {
   repo: SolicitacoesRepository;
-  categorias: Pick<CategoriasRepository, 'buscarPorId'>;
+  /** Só o necessário para validar a categoria informada. */
+  categorias: { buscarPorId(id: number): Promise<{ id: number; nome: string; ativa: boolean } | null> };
 }
 
 export function criarSolicitacoesService({ repo, categorias }: Dependencias) {

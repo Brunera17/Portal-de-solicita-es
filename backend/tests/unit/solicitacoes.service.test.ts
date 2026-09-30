@@ -9,22 +9,28 @@ import type {
 const maria = { id: 2, nome: 'Maria', perfil: Perfil.SOLICITANTE };
 const joao = { id: 3, nome: 'João', perfil: Perfil.SOLICITANTE };
 const atendente = { id: 1, nome: 'Ana', perfil: Perfil.ATENDENTE };
+const gerente = { id: 4, nome: 'Gabriel', perfil: Perfil.GERENTE };
 
-function solicitacao(status: StatusSolicitacao, dono = maria): SolicitacaoDetalhe {
+const TI = { id: 1, nome: 'TI', ativa: true, criadoEm: new Date() };
+const RH = { id: 2, nome: 'RH', ativa: true, criadoEm: new Date() };
+const LEGADA = { id: 9, nome: 'Legada', ativa: false, criadoEm: new Date() };
+const categoriasPorId = new Map([TI, RH, LEGADA].map((c) => [c.id, c]));
+
+function solicitacao(status: StatusSolicitacao, dono = maria, categoria = TI): SolicitacaoDetalhe {
   return {
     id: 10,
     titulo: 'Teste',
     descricao: 'Descrição de teste',
-    categoria: 'TI',
+    categoria: { id: categoria.id, nome: categoria.nome },
     status,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
-    solicitante: { id: dono.id, nome: dono.nome },
+    solicitante: { id: dono.id, nome: dono.nome, corAvatar: 'indigo' },
     historico: [],
   };
 }
 
-const dados = { titulo: 'Novo título', descricao: 'Nova descrição válida', categoria: 'RH' as const };
+const dados = { titulo: 'Novo título', descricao: 'Nova descrição válida', categoriaId: RH.id };
 
 function criarRepoFake() {
   return {
@@ -44,7 +50,10 @@ describe('solicitacoesService', () => {
 
   beforeEach(() => {
     repo = criarRepoFake();
-    service = criarSolicitacoesService(repo as unknown as SolicitacoesRepository);
+    service = criarSolicitacoesService({
+      repo: repo as unknown as SolicitacoesRepository,
+      categorias: { buscarPorId: async (id: number) => categoriasPorId.get(id) ?? null },
+    });
   });
 
   describe('listar', () => {
@@ -54,6 +63,11 @@ describe('solicitacoesService', () => {
         skip: 0,
         take: 10,
       });
+    });
+
+    it('não restringe o gerente', async () => {
+      await service.listar({ pagina: 1, porPagina: 10 }, gerente);
+      expect(repo.listar).toHaveBeenCalledWith(expect.objectContaining({ solicitanteId: undefined }), expect.anything());
     });
 
     it('não restringe o atendente', async () => {
@@ -95,6 +109,35 @@ describe('solicitacoesService', () => {
     });
   });
 
+  describe('categoria', () => {
+    it('rejeita criação com categoria desativada', async () => {
+      await expect(service.criar({ ...dados, categoriaId: LEGADA.id }, maria)).rejects.toMatchObject({
+        statusCode: 422,
+        code: 'CATEGORIA_INATIVA',
+      });
+      expect(repo.criar).not.toHaveBeenCalled();
+    });
+
+    it('rejeita categoria inexistente', async () => {
+      await expect(service.criar({ ...dados, categoriaId: 999 }, maria)).rejects.toMatchObject({
+        code: 'CATEGORIA_INVALIDA',
+      });
+    });
+
+    it('permite manter na edição uma categoria que foi desativada depois', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO', maria, LEGADA));
+      await service.atualizar(10, { ...dados, categoriaId: LEGADA.id }, maria);
+      expect(repo.atualizarSeAberta).toHaveBeenCalled();
+    });
+
+    it('não permite trocar para uma categoria desativada', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO', maria, TI));
+      await expect(service.atualizar(10, { ...dados, categoriaId: LEGADA.id }, maria)).rejects.toMatchObject({
+        code: 'CATEGORIA_INATIVA',
+      });
+    });
+  });
+
   describe('atualizar / excluir', () => {
     it('permite o dono editar solicitação aberta', async () => {
       repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
@@ -128,6 +171,12 @@ describe('solicitacoesService', () => {
       repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
       await service.alterarStatus(10, 'EM_ATENDIMENTO', atendente);
       expect(repo.alterarStatus).toHaveBeenCalledWith(10, 'ABERTO', 'EM_ATENDIMENTO', atendente.id);
+    });
+
+    it('gerente também pode avançar o status', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('EM_ATENDIMENTO'));
+      await service.alterarStatus(10, 'CONCLUIDO', gerente);
+      expect(repo.alterarStatus).toHaveBeenCalledWith(10, 'EM_ATENDIMENTO', 'CONCLUIDO', gerente.id);
     });
 
     it('rejeita transição inválida', async () => {

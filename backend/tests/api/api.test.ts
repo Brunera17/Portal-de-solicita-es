@@ -17,9 +17,12 @@ async function login(usuario: string, senha: string) {
 let tokenMaria: string;
 let tokenJoao: string;
 let tokenAtendente: string;
+/** id das categorias do seed, por nome */
+const cat: Record<string, number> = {};
 
 beforeAll(async () => {
   await popularBanco(prisma);
+  for (const c of await prisma.categoria.findMany()) cat[c.nome] = c.id;
   [tokenMaria, tokenJoao, tokenAtendente] = await Promise.all([
     login('maria', 'maria123'),
     login('joao', 'joao123'),
@@ -36,7 +39,7 @@ describe('Autenticação', () => {
     const res = await request(app).post('/api/auth/login').send({ usuario: 'maria', senha: 'maria123' });
     expect(res.status).toBe(200);
     expect(res.body.token).toEqual(expect.any(String));
-    expect(res.body.usuario).toEqual({ id: expect.any(Number), nome: 'Maria Silva', usuario: 'maria', perfil: 'SOLICITANTE' });
+    expect(res.body.usuario).toEqual({ id: expect.any(Number), nome: 'Maria Silva', usuario: 'maria', perfil: 'SOLICITANTE', corAvatar: 'rose' });
     expect(res.body.usuario).not.toHaveProperty('senhaHash');
   });
 
@@ -82,10 +85,10 @@ describe('Listagem e filtros', () => {
       expect.objectContaining({
         id: expect.any(Number),
         titulo: expect.any(String),
-        categoria: expect.any(String),
+        categoria: { id: expect.any(Number), nome: expect.any(String) },
         status: expect.any(String),
         criadoEm: expect.any(String),
-        solicitante: { id: expect.any(Number), nome: expect.any(String) },
+        solicitante: { id: expect.any(Number), nome: expect.any(String), corAvatar: expect.any(String) },
       }),
     );
   });
@@ -104,10 +107,10 @@ describe('Listagem e filtros', () => {
 
   it('filtra por status e categoria', async () => {
     const res = await request(app)
-      .get('/api/solicitacoes?status=ABERTO&categoria=TI')
+      .get(`/api/solicitacoes?status=ABERTO&categoriaId=${cat.TI}`)
       .set('Authorization', tokenAtendente);
     expect(res.body.dados.length).toBeGreaterThan(0);
-    expect(res.body.dados.every((s: { status: string; categoria: string }) => s.status === 'ABERTO' && s.categoria === 'TI')).toBe(true);
+    expect(res.body.dados.every((s: { status: string; categoria: { nome: string } }) => s.status === 'ABERTO' && s.categoria.nome === 'TI')).toBe(true);
   });
 
   it('busca por texto no título sem diferenciar maiúsculas', async () => {
@@ -148,7 +151,7 @@ describe('Cadastro, edição e exclusão', () => {
     const res = await request(app)
       .post('/api/solicitacoes')
       .set('Authorization', tokenMaria)
-      .send({ titulo: '  Monitor piscando  ', descricao: 'O monitor da estação 5 fica piscando.', categoria: 'TI' });
+      .send({ titulo: '  Monitor piscando  ', descricao: 'O monitor da estação 5 fica piscando.', categoriaId: cat.TI });
     expect(res.status).toBe(201);
     id = res.body.id;
   });
@@ -167,7 +170,7 @@ describe('Cadastro, edição e exclusão', () => {
     const res = await request(app)
       .post('/api/solicitacoes')
       .set('Authorization', tokenMaria)
-      .send({ titulo: 'Tentativa', descricao: 'Tentando forçar status e dono.', categoria: 'RH', status: 'CONCLUIDO', solicitanteId: 999 });
+      .send({ titulo: 'Tentativa', descricao: 'Tentando forçar status e dono.', categoriaId: cat.RH, status: 'CONCLUIDO', solicitanteId: 999 });
     expect(res.status).toBe(201);
     expect(res.body.status).toBe('ABERTO');
     expect(res.body.solicitante.nome).toBe('Maria Silva');
@@ -177,22 +180,22 @@ describe('Cadastro, edição e exclusão', () => {
     const res = await request(app)
       .post('/api/solicitacoes')
       .set('Authorization', tokenMaria)
-      .send({ titulo: 'ab', categoria: 'MARKETING' });
+      .send({ titulo: 'ab', categoriaId: 'MARKETING' });
     expect(res.status).toBe(400);
-    expect(res.body.error.details.map((d: { campo: string }) => d.campo).sort()).toEqual(['categoria', 'descricao', 'titulo']);
+    expect(res.body.error.details.map((d: { campo: string }) => d.campo).sort()).toEqual(['categoriaId', 'descricao', 'titulo']);
   });
 
   it('dono edita solicitação aberta', async () => {
     const res = await request(app)
       .put(`/api/solicitacoes/${id}`)
       .set('Authorization', tokenMaria)
-      .send({ titulo: 'Monitor com defeito', descricao: 'O monitor da estação 5 não liga mais.', categoria: 'INFRAESTRUTURA' });
+      .send({ titulo: 'Monitor com defeito', descricao: 'O monitor da estação 5 não liga mais.', categoriaId: cat.Infraestrutura });
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ titulo: 'Monitor com defeito', categoria: 'INFRAESTRUTURA' });
+    expect(res.body).toMatchObject({ titulo: 'Monitor com defeito', categoria: { nome: 'Infraestrutura' } });
   });
 
   it('outro solicitante não vê, não edita e não exclui', async () => {
-    const corpo = { titulo: 'Invasão', descricao: 'Tentando editar o que não é meu.', categoria: 'TI' };
+    const corpo = { titulo: 'Invasão', descricao: 'Tentando editar o que não é meu.', categoriaId: cat.TI };
     expect((await request(app).get(`/api/solicitacoes/${id}`).set('Authorization', tokenJoao)).status).toBe(403);
     expect((await request(app).put(`/api/solicitacoes/${id}`).set('Authorization', tokenJoao).send(corpo)).status).toBe(403);
     expect((await request(app).delete(`/api/solicitacoes/${id}`).set('Authorization', tokenJoao)).status).toBe(403);
@@ -209,7 +212,7 @@ describe('Cadastro, edição e exclusão', () => {
     const edicao = await request(app)
       .put(`/api/solicitacoes/${id}`)
       .set('Authorization', tokenMaria)
-      .send({ titulo: 'Tarde demais', descricao: 'Não deveria ser possível editar.', categoria: 'TI' });
+      .send({ titulo: 'Tarde demais', descricao: 'Não deveria ser possível editar.', categoriaId: cat.TI });
     expect(edicao.status).toBe(422);
     expect(edicao.body.error.code).toBe('SOLICITACAO_NAO_ABERTA');
 
@@ -229,7 +232,7 @@ describe('Alteração de status', () => {
     const res = await request(app)
       .post('/api/solicitacoes')
       .set('Authorization', tokenJoao)
-      .send({ titulo: 'Mouse quebrado', descricao: 'O botão esquerdo do mouse parou.', categoria: 'TI' });
+      .send({ titulo: 'Mouse quebrado', descricao: 'O botão esquerdo do mouse parou.', categoriaId: cat.TI });
     id = res.body.id;
   });
 

@@ -1,4 +1,4 @@
--- Portal de Solicitações Internas: script de criação do banco (PostgreSQL 16)
+-- Portal de Solicitações Internas: script de criação do banco (PostgreSQL 17)
 -- Gerado a partir de backend/prisma/migrations. Uso: psql -U <usuario> -d <banco> -f database/schema.sql
 
 -- CreateSchema

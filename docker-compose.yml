@@ -1,20 +1,56 @@
+# Sobe o sistema completo: banco, API e interface web.
+#   docker compose up -d --build     → acesse http://localhost:8080
+#   docker compose down              → para (os dados ficam no volume "pgdata")
+#   docker compose down -v           → para e APAGA os dados
+name: portal-solicitacoes
+
 services:
   db:
     image: postgres:17-alpine
-    container_name: portal-db
     environment:
       POSTGRES_USER: portal
       POSTGRES_PASSWORD: portal
       POSTGRES_DB: portal_solicitacoes
-    ports:
-      - "5432:5432"
+      TZ: America/Sao_Paulo
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # Sem porta publicada: evita conflito com um PostgreSQL instalado na máquina (5432).
+    # Para inspecionar o banco, descomente:
+    # ports:
+    #   - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U portal -d portal_solicitacoes"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://portal:portal@db:5432/portal_solicitacoes?schema=public
+      # Defina JWT_SECRET no ambiente (ou num arquivo .env ao lado deste) fora da demonstração
+      JWT_SECRET: ${JWT_SECRET:-segredo-somente-para-demonstracao-troque-em-producao}
+      JWT_EXPIRES_IN: 8h
+      CORS_ORIGIN: http://localhost:8080
+      TRUST_PROXY: 1
+      SEED_DEMO: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_EXIBIR_USUARIOS_DEMO: "true"
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:

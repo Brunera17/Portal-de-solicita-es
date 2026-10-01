@@ -7,6 +7,7 @@ export interface FiltrosSolicitacao {
   criadoDesde?: Date;
   criadoAntesDe?: Date;
   categoriaId?: number;
+  responsavelId?: number;
   status?: StatusSolicitacao;
   tituloContem?: string;
 }
@@ -19,6 +20,7 @@ const resumoSelect = {
   criadoEm: true,
   atualizadoEm: true,
   solicitante: { select: { id: true, nome: true, corAvatar: true } },
+  responsavel: { select: { id: true, nome: true, corAvatar: true } },
 } satisfies Prisma.SolicitacaoSelect;
 
 const detalheSelect = {
@@ -42,6 +44,7 @@ function montarWhere(f: FiltrosSolicitacao): Prisma.SolicitacaoWhereInput {
   return {
     solicitanteId: f.solicitanteId,
     categoriaId: f.categoriaId,
+    responsavelId: f.responsavelId,
     status: f.status,
     criadoEm: f.criadoDesde || f.criadoAntesDe ? { gte: f.criadoDesde, lt: f.criadoAntesDe } : undefined,
     titulo: f.tituloContem ? { contains: f.tituloContem, mode: 'insensitive' } : undefined,
@@ -97,9 +100,19 @@ export const solicitacoesRepository = {
     return count > 0;
   },
 
+  /** Quantas solicitações a pessoa tem em atendimento agora (para o limite de WIP). */
+  contarEmAtendimento(responsavelId: number) {
+    return prisma.solicitacao.count({ where: { responsavelId, status: StatusSolicitacao.EM_ATENDIMENTO } });
+  },
+
+  /** Ao iniciar o atendimento, quem fez a mudança passa a ser o responsável. */
   alterarStatus(id: number, de: StatusSolicitacao, para: StatusSolicitacao, alteradoPorId: number) {
+    const iniciandoAtendimento = para === StatusSolicitacao.EM_ATENDIMENTO;
     return prisma.$transaction(async (tx) => {
-      const { count } = await tx.solicitacao.updateMany({ where: { id, status: de }, data: { status: para } });
+      const { count } = await tx.solicitacao.updateMany({
+        where: { id, status: de },
+        data: { status: para, ...(iniciandoAtendimento && { responsavelId: alteradoPorId }) },
+      });
       if (count === 0) return false;
 
       await tx.historicoStatus.create({

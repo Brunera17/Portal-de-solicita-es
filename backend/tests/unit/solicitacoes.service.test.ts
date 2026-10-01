@@ -26,6 +26,7 @@ function solicitacao(status: StatusSolicitacao, dono = maria, categoria = TI): S
     criadoEm: new Date(),
     atualizadoEm: new Date(),
     solicitante: { id: dono.id, nome: dono.nome, corAvatar: 'indigo' },
+    responsavel: null,
     historico: [],
   };
 }
@@ -39,6 +40,7 @@ function criarRepoFake() {
     criar: vi.fn(),
     atualizarSeAberta: vi.fn().mockResolvedValue(true),
     excluirSeAberta: vi.fn().mockResolvedValue(true),
+    contarEmAtendimento: vi.fn().mockResolvedValue(0),
     alterarStatus: vi.fn().mockResolvedValue(true),
     contarPorStatus: vi.fn().mockResolvedValue([]),
   } satisfies Record<keyof SolicitacoesRepository, unknown>;
@@ -46,13 +48,16 @@ function criarRepoFake() {
 
 describe('solicitacoesService', () => {
   let repo: ReturnType<typeof criarRepoFake>;
+  let notificacoes: { statusAlterado: ReturnType<typeof vi.fn<() => Promise<void>>> };
   let service: ReturnType<typeof criarSolicitacoesService>;
 
   beforeEach(() => {
     repo = criarRepoFake();
+    notificacoes = { statusAlterado: vi.fn(async () => undefined) };
     service = criarSolicitacoesService({
       repo: repo as unknown as SolicitacoesRepository,
       categorias: { buscarPorId: async (id: number) => categoriasPorId.get(id) ?? null },
+      notificacoes,
     });
   });
 
@@ -171,6 +176,44 @@ describe('solicitacoesService', () => {
       repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
       await service.alterarStatus(10, 'EM_ATENDIMENTO', atendente);
       expect(repo.alterarStatus).toHaveBeenCalledWith(10, 'ABERTO', 'EM_ATENDIMENTO', atendente.id);
+    });
+
+    it('notifica o solicitante após mudar o status', async () => {
+      const s = solicitacao('ABERTO');
+      repo.buscarPorId.mockResolvedValue(s);
+      await service.alterarStatus(10, 'EM_ATENDIMENTO', atendente);
+      expect(notificacoes.statusAlterado).toHaveBeenCalledWith(s, 'EM_ATENDIMENTO', atendente);
+    });
+
+    it('não notifica quando a transição é recusada', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
+      repo.alterarStatus.mockResolvedValue(false);
+      await expect(service.alterarStatus(10, 'EM_ATENDIMENTO', atendente)).rejects.toThrow();
+      expect(notificacoes.statusAlterado).not.toHaveBeenCalled();
+    });
+
+    it('recusa iniciar um 4º atendimento simultâneo (limite de 3)', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
+      repo.contarEmAtendimento.mockResolvedValue(3);
+      await expect(service.alterarStatus(10, 'EM_ATENDIMENTO', atendente)).rejects.toMatchObject({
+        statusCode: 422,
+        code: 'LIMITE_EM_ATENDIMENTO',
+      });
+      expect(repo.contarEmAtendimento).toHaveBeenCalledWith(atendente.id);
+      expect(repo.alterarStatus).not.toHaveBeenCalled();
+    });
+
+    it('o limite vale também para o gerente', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO'));
+      repo.contarEmAtendimento.mockResolvedValue(3);
+      await expect(service.alterarStatus(10, 'EM_ATENDIMENTO', gerente)).rejects.toMatchObject({ code: 'LIMITE_EM_ATENDIMENTO' });
+    });
+
+    it('concluir não depende do limite', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('EM_ATENDIMENTO'));
+      repo.contarEmAtendimento.mockResolvedValue(3);
+      await service.alterarStatus(10, 'CONCLUIDO', atendente);
+      expect(repo.contarEmAtendimento).not.toHaveBeenCalled();
     });
 
     it('gerente também pode avançar o status', async () => {

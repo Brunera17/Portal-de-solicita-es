@@ -1,14 +1,15 @@
-import type { StatusSolicitacao } from '@prisma/client';
+import { StatusSolicitacao } from '@prisma/client';
 import { AppError, BusinessRuleError, ForbiddenError, NotFoundError } from '../../errors/AppError';
 import { ehEquipe } from '../../lib/permissoes';
 import type { UsuarioAutenticado } from '../../types/express';
 import { categoriasRepository } from '../categorias/categorias.repository';
+import { notificacoesService } from '../notificacoes/notificacoes.service';
 import {
   solicitacoesRepository,
   type SolicitacaoDetalhe,
   type SolicitacoesRepository,
 } from './solicitacoes.repository';
-import { podeSerAlterada, podeTransicionar, ROTULOS_STATUS } from './solicitacoes.rules';
+import { LIMITE_EM_ATENDIMENTO, podeSerAlterada, podeTransicionar, ROTULOS_STATUS } from './solicitacoes.rules';
 import type { ListarSolicitacoesInput, SolicitacaoInput } from './solicitacoes.schemas';
 
 const DIA_MS = 24 * 60 * 60 * 1000;
@@ -34,9 +35,10 @@ interface Dependencias {
   repo: SolicitacoesRepository;
   /** Só o necessário para validar a categoria informada. */
   categorias: { buscarPorId(id: number): Promise<{ id: number; nome: string; ativa: boolean } | null> };
+  notificacoes: Pick<typeof notificacoesService, 'statusAlterado'>;
 }
 
-export function criarSolicitacoesService({ repo, categorias }: Dependencias) {
+export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dependencias) {
   /**
    * Novas solicitações exigem categoria ativa. Na edição, manter a categoria atual é
    * permitido mesmo que ela tenha sido desativada depois da abertura.
@@ -82,6 +84,7 @@ export function criarSolicitacoesService({ repo, categorias }: Dependencias) {
         {
           solicitanteId: escopoDoUsuario(usuario),
           categoriaId: filtros.categoriaId,
+          responsavelId: filtros.responsavelId,
           status: filtros.status,
           tituloContem: filtros.q,
           criadoDesde: filtros.dataInicio ? inicioDoDia(filtros.dataInicio) : undefined,
@@ -133,10 +136,22 @@ export function criarSolicitacoesService({ repo, categorias }: Dependencias) {
         );
       }
 
+      // Limite de WIP: ninguém acumula mais que LIMITE_EM_ATENDIMENTO atendimentos simultâneos
+      if (novoStatus === StatusSolicitacao.EM_ATENDIMENTO) {
+        const emAndamento = await repo.contarEmAtendimento(usuario.id);
+        if (emAndamento >= LIMITE_EM_ATENDIMENTO) {
+          throw new BusinessRuleError(
+            `Você já tem ${emAndamento} solicitações em atendimento (limite: ${LIMITE_EM_ATENDIMENTO}). Conclua uma antes de iniciar outra.`,
+            'LIMITE_EM_ATENDIMENTO',
+          );
+        }
+      }
+
       if (!(await repo.alterarStatus(id, atual, novoStatus, usuario.id))) {
         throw new AppError(409, 'CONFLITO', 'A solicitação foi alterada por outro usuário. Atualize a página e tente novamente.');
       }
 
+      await notificacoes.statusAlterado(solicitacao, novoStatus, usuario);
       return buscarVisivel(id, usuario);
     },
 
@@ -157,4 +172,5 @@ export function criarSolicitacoesService({ repo, categorias }: Dependencias) {
 export const solicitacoesService = criarSolicitacoesService({
   repo: solicitacoesRepository,
   categorias: categoriasRepository,
+  notificacoes: notificacoesService,
 });

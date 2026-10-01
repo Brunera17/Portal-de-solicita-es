@@ -24,6 +24,13 @@ enum StatusSolicitacao {
   @@map("status_solicitacao")
 }
 
+enum TipoNotificacao {
+  STATUS_ALTERADO
+  NOVO_COMENTARIO
+
+  @@map("tipo_notificacao")
+}
+
 model Usuario {
   id           Int      @id @default(autoincrement())
   nome         String   @db.VarChar(100)
@@ -35,9 +42,12 @@ model Usuario {
   criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
-  solicitacoes     Solicitacao[]
-  alteracoesStatus HistoricoStatus[]
-  comentarios      Comentario[]
+  solicitacoes        Solicitacao[]     @relation("Solicitante")
+  atendimentos        Solicitacao[]     @relation("Responsavel")
+  alteracoesStatus    HistoricoStatus[]
+  comentarios         Comentario[]
+  notificacoes        Notificacao[]     @relation("Destinatario")
+  notificacoesGeradas Notificacao[]     @relation("AutorNotificacao")
 
   @@map("usuarios")
 }
@@ -61,15 +71,20 @@ model Solicitacao {
   categoriaId   Int               @map("categoria_id")
   status        StatusSolicitacao @default(ABERTO)
   solicitanteId Int               @map("solicitante_id")
+  /// Quem iniciou o atendimento (definido ao passar para EM_ATENDIMENTO)
+  responsavelId Int?              @map("responsavel_id")
   criadoEm      DateTime          @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm  DateTime          @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
-  categoria   Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
-  solicitante Usuario           @relation(fields: [solicitanteId], references: [id], onDelete: Restrict)
-  historico   HistoricoStatus[]
-  comentarios Comentario[]
+  categoria    Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  solicitante  Usuario           @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
+  responsavel  Usuario?          @relation("Responsavel", fields: [responsavelId], references: [id], onDelete: Restrict)
+  historico    HistoricoStatus[]
+  comentarios  Comentario[]
+  notificacoes Notificacao[]
 
   @@index([status])
+  @@index([responsavelId, status])
   @@index([categoriaId])
   @@index([criadoEm])
   @@index([solicitanteId])
@@ -105,4 +120,23 @@ model Comentario {
 
   @@index([solicitacaoId, criadoEm])
   @@map("comentarios")
+}
+
+/// Avisos para o usuário (sino). Gerados pelo backend quando o status muda ou chega comentário.
+model Notificacao {
+  id             Int             @id @default(autoincrement())
+  destinatarioId Int             @map("destinatario_id")
+  autorId        Int             @map("autor_id")
+  solicitacaoId  Int             @map("solicitacao_id")
+  tipo           TipoNotificacao
+  mensagem       String          @db.VarChar(300)
+  lida           Boolean         @default(false)
+  criadoEm       DateTime        @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  destinatario Usuario     @relation("Destinatario", fields: [destinatarioId], references: [id], onDelete: Cascade)
+  autor        Usuario     @relation("AutorNotificacao", fields: [autorId], references: [id], onDelete: Cascade)
+  solicitacao  Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+
+  @@index([destinatarioId, lida, criadoEm])
+  @@map("notificacoes")
 }

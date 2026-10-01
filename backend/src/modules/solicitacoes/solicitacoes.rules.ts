@@ -14,6 +14,9 @@ export function podeTransicionar(de: StatusSolicitacao, para: StatusSolicitacao)
   return TRANSICOES_PERMITIDAS[de].includes(para);
 }
 
+/** Quantas solicitações cada pessoa da equipe pode ter em atendimento ao mesmo tempo (WIP). */
+export const LIMITE_EM_ATENDIMENTO = 3;
+
 /** Edição e exclusão só são permitidas enquanto a solicitação está aberta. */
 export function podeSerAlterada(status: StatusSolicitacao): boolean {
   return status === StatusSolicitacao.ABERTO;

@@ -3,6 +3,7 @@ import { prisma } from './lib/prisma';
 import { authRoutes } from './modules/auth/auth.routes';
 import { categoriasRoutes } from './modules/categorias/categorias.routes';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes';
+import { notificacoesRoutes } from './modules/notificacoes/notificacoes.routes';
 import { solicitacoesRoutes } from './modules/solicitacoes/solicitacoes.routes';
 import { perfilRoutes, usuariosRoutes } from './modules/usuarios/usuarios.routes';
 
@@ -19,3 +20,4 @@ routes.use('/solicitacoes', solicitacoesRoutes);
 routes.use('/categorias', categoriasRoutes);
 routes.use('/usuarios', usuariosRoutes);
 routes.use('/dashboard', dashboardRoutes);
+routes.use('/notificacoes', notificacoesRoutes);

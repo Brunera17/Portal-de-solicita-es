@@ -35,6 +35,7 @@ export const listarSolicitacoesSchema = z
     dataInicio: opcional(dataSchema),
     dataFim: opcional(dataSchema),
     categoriaId: opcional(categoriaIdSchema),
+    responsavelId: opcional(z.coerce.number().int().positive('Responsável inválido')),
     status: opcional(z.enum(StatusSolicitacao, { error: 'Status inválido' })),
     q: opcional(z.string().trim().max(150, 'A busca deve ter no máximo 150 caracteres')),
     pagina: z.coerce.number().int().min(1, 'Página inválida').default(1),

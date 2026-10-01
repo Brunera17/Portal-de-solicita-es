@@ -18,16 +18,19 @@ async function login(usuario: string, senha: string) {
 let tokenMaria: string;
 let tokenJoao: string;
 let tokenAtendente: string;
+/** A atendente do seed já está no limite de atendimentos; o gerente inicia os novos. */
+let tokenGerente: string;
 /** id das categorias do seed, por nome */
 const cat: Record<string, number> = {};
 
 beforeAll(async () => {
   await popularBanco(prisma);
   for (const c of await prisma.categoria.findMany()) cat[c.nome] = c.id;
-  [tokenMaria, tokenJoao, tokenAtendente] = await Promise.all([
+  [tokenMaria, tokenJoao, tokenAtendente, tokenGerente] = await Promise.all([
     login('maria', 'maria123'),
     login('joao', 'joao123'),
     login('atendente', 'atendente123'),
+    login('gerente', 'gerente123'),
   ]);
 });
 
@@ -208,7 +211,7 @@ describe('Cadastro, edição e exclusão', () => {
   });
 
   it('não permite editar nem excluir depois que o atendimento começa', async () => {
-    await request(app).patch(`/api/solicitacoes/${id}/status`).set('Authorization', tokenAtendente).send({ status: 'EM_ATENDIMENTO' });
+    await request(app).patch(`/api/solicitacoes/${id}/status`).set('Authorization', tokenGerente).send({ status: 'EM_ATENDIMENTO' });
 
     const edicao = await request(app)
       .put(`/api/solicitacoes/${id}`)
@@ -244,12 +247,13 @@ describe('Alteração de status', () => {
     expect((await alterar(tokenJoao, 'EM_ATENDIMENTO')).status).toBe(403);
   });
 
-  it('atendente percorre o fluxo completo e o histórico é registrado', async () => {
-    expect((await alterar(tokenAtendente, 'EM_ATENDIMENTO')).status).toBe(200);
+  it('a equipe percorre o fluxo completo e o histórico é registrado', async () => {
+    expect((await alterar(tokenGerente, 'EM_ATENDIMENTO')).status).toBe(200);
     const res = await alterar(tokenAtendente, 'CONCLUIDO');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('CONCLUIDO');
     expect(res.body.historico.map((h: { statusNovo: string }) => h.statusNovo)).toEqual(['ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO']);
+    expect(res.body.historico[1].alteradoPor.nome).toBe('Gabriel Gerente');
     expect(res.body.historico[2].alteradoPor.nome).toBe('Ana Atendente');
   });
 

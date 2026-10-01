@@ -1,0 +1,45 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { notificacoesService } from '../../src/modules/notificacoes/notificacoes.service';
+
+// vi.mock é içado para antes dos imports; vi.hoisted cria o mock nesse mesmo momento
+const { criarVarias } = vi.hoisted(() => ({ criarVarias: vi.fn() }));
+vi.mock('../../src/modules/notificacoes/notificacoes.repository', () => ({
+  notificacoesRepository: { criarVarias },
+}));
+
+const maria = { id: 3, nome: 'Maria Silva' };
+const ana = { id: 2, nome: 'Ana Atendente' };
+const gerente = { id: 1, nome: 'Gabriel Gerente' };
+const solicitacao = { id: 7, titulo: 'Reembolso', solicitante: { id: maria.id }, responsavel: { id: ana.id } };
+
+const destinatarios = () => criarVarias.mock.calls.flatMap(([dados]) => dados.map((n: { destinatarioId: number }) => n.destinatarioId));
+
+describe('notificacoesService', () => {
+  beforeEach(() => criarVarias.mockReset());
+
+  it('mudança de status avisa o solicitante com o novo status na mensagem', async () => {
+    await notificacoesService.statusAlterado(solicitacao, 'CONCLUIDO', ana);
+    expect(criarVarias).toHaveBeenCalledWith([
+      expect.objectContaining({ destinatarioId: maria.id, autorId: ana.id, tipo: 'STATUS_ALTERADO', mensagem: expect.stringContaining('Concluído') }),
+    ]);
+  });
+
+  it('comentário público avisa solicitante e responsável, menos o próprio autor', async () => {
+    await notificacoesService.novoComentario(solicitacao, false, gerente);
+    expect(destinatarios().sort()).toEqual([ana.id, maria.id].sort());
+
+    criarVarias.mockReset();
+    await notificacoesService.novoComentario(solicitacao, false, maria);
+    expect(destinatarios()).toEqual([ana.id]);
+  });
+
+  it('nota interna nunca avisa o solicitante', async () => {
+    await notificacoesService.novoComentario(solicitacao, true, gerente);
+    expect(destinatarios()).toEqual([ana.id]);
+  });
+
+  it('não gera nada quando o único envolvido é o autor', async () => {
+    await notificacoesService.novoComentario({ ...solicitacao, responsavel: null }, false, maria);
+    expect(criarVarias).not.toHaveBeenCalled();
+  });
+});

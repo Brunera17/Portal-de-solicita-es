@@ -1,7 +1,7 @@
 /**
  * Dados de demonstração. Usado pelo `prisma db seed` e pelos testes de API.
  */
-import { Perfil, StatusSolicitacao, type PrismaClient } from '@prisma/client';
+import { Perfil, StatusSolicitacao, TipoNotificacao, type PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 export const usuarios = [
@@ -20,6 +20,8 @@ type SolicitacaoSeed = {
   status: StatusSolicitacao;
   solicitante: string;
   diasAtras: number;
+  /** Quem iniciou o atendimento (padrão: atendente). Ignorado se a solicitação está aberta. */
+  responsavel?: string;
   comentarios?: { autor: string; texto: string; interno?: boolean }[];
 };
 
@@ -50,9 +52,9 @@ const solicitacoes: SolicitacaoSeed[] = [
   { titulo: 'Cotação de toners para impressora', descricao: 'Estoque de toner da impressora do 2º andar acabando.', categoria: 'Compras', status: CONCLUIDO, solicitante: 'maria', diasAtras: 45 },
   { titulo: 'Segunda via de nota fiscal', descricao: 'Fornecedor solicitou segunda via da NF 4512.', categoria: 'Financeiro', status: ABERTO, solicitante: 'joao', diasAtras: 5 },
   {
-    titulo: 'Lâmpadas queimadas no corredor', descricao: 'Três lâmpadas queimadas no corredor de acesso ao estoque.', categoria: 'Infraestrutura', status: EM_ATENDIMENTO, solicitante: 'maria', diasAtras: 6,
+    titulo: 'Lâmpadas queimadas no corredor', descricao: 'Três lâmpadas queimadas no corredor de acesso ao estoque.', categoria: 'Infraestrutura', status: EM_ATENDIMENTO, solicitante: 'maria', diasAtras: 6, responsavel: 'gerente',
     comentarios: [
-      { autor: 'atendente', texto: 'Fornecedor de lâmpadas atrasou a entrega; previsão de troca na segunda-feira.', interno: true },
+      { autor: 'gerente', texto: 'Fornecedor de lâmpadas atrasou a entrega; previsão de troca na segunda-feira.', interno: true },
     ],
   },
   { titulo: 'VPN não conecta em home office', descricao: 'Erro de autenticação ao conectar na VPN a partir de casa.', categoria: 'TI', status: ABERTO, solicitante: 'maria', diasAtras: 1 },
@@ -92,8 +94,7 @@ export async function popularBanco(prisma: PrismaClient) {
     idsPorCategoria.set(nome, salva.id);
   }
 
-  const atendenteId = idsPorUsuario.get('atendente')!;
-
+  await prisma.notificacao.deleteMany();
   await prisma.comentario.deleteMany();
   await prisma.historicoStatus.deleteMany();
   await prisma.solicitacao.deleteMany();
@@ -109,20 +110,22 @@ export async function popularBanco(prisma: PrismaClient) {
     const criadoEm = new Date(Date.now() - s.diasAtras * DIA_MS);
     const caminho = caminhoAte(s.status);
     const passo = DIA_MS / 8;
+    const responsavelId = s.status === ABERTO ? null : idsPorUsuario.get(s.responsavel ?? 'atendente')!;
 
-    await prisma.solicitacao.create({
+    const criada = await prisma.solicitacao.create({
       data: {
         titulo: s.titulo,
         descricao: s.descricao,
         categoriaId: idsPorCategoria.get(s.categoria)!,
         status: s.status,
         solicitanteId,
+        responsavelId,
         criadoEm,
         historico: {
           create: caminho.map((status, i) => ({
             statusAnterior: i === 0 ? null : caminho[i - 1],
             statusNovo: status,
-            alteradoPorId: i === 0 ? solicitanteId : atendenteId,
+            alteradoPorId: i === 0 ? solicitanteId : responsavelId!,
             alteradoEm: new Date(criadoEm.getTime() + i * passo),
           })),
         },
@@ -135,7 +138,38 @@ export async function popularBanco(prisma: PrismaClient) {
           })),
         },
       },
+      select: { id: true, historico: true, comentarios: true },
     });
+
+    // Notificações coerentes com o que aconteceu (as de mais de uma semana já foram lidas)
+    const codigo = `#${String(criada.id).padStart(4, '0')}`;
+    const nomeDe = (id: number) => usuarios.find((u) => idsPorUsuario.get(u.usuario) === id)!.nome;
+    const rotulo = { ABERTO: 'Aberto', EM_ATENDIMENTO: 'Em Atendimento', CONCLUIDO: 'Concluído' };
+    const notificacoes = [
+      ...criada.historico
+        .filter((h) => h.statusAnterior)
+        .map((h) => ({
+          destinatarioId: solicitanteId,
+          autorId: h.alteradoPorId,
+          tipo: TipoNotificacao.STATUS_ALTERADO,
+          mensagem: `${nomeDe(h.alteradoPorId)} alterou ${codigo} "${s.titulo}" para ${rotulo[h.statusNovo]}`,
+          criadoEm: h.alteradoEm,
+        })),
+      ...criada.comentarios
+        .filter((c) => !c.interno && c.autorId !== solicitanteId)
+        .map((c) => ({
+          destinatarioId: solicitanteId,
+          autorId: c.autorId,
+          tipo: TipoNotificacao.NOVO_COMENTARIO,
+          mensagem: `${nomeDe(c.autorId)} comentou em ${codigo} "${s.titulo}"`,
+          criadoEm: c.criadoEm,
+        })),
+    ];
+    if (notificacoes.length) {
+      await prisma.notificacao.createMany({
+        data: notificacoes.map((n) => ({ ...n, solicitacaoId: criada.id, lida: s.diasAtras > 7 })),
+      });
+    }
   }
 
   return { usuarios: usuarios.length, categorias: categorias.length, solicitacoes: solicitacoes.length };

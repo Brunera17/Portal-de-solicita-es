@@ -99,7 +99,7 @@ Pessoas que acessam o portal. Contas não são excluídas, apenas desativadas (p
 | `usuario` | `VARCHAR(50)` | não | — | UNIQUE | Login. Minúsculas, números, `.`, `-` e `_`. |
 | `senha_hash` | `VARCHAR(255)` | não | — | — | Hash **bcrypt** da senha (custo 10). A senha nunca é armazenada nem devolvida pela API. |
 | `perfil` | `perfil_usuario` | não | `SOLICITANTE` | — | Perfil de acesso. |
-| `cor_avatar` | `VARCHAR(20)` | não | `'indigo'` | — | Cor do avatar escolhida em "Meu perfil" (paleta fixa validada na API). |
+| `cor_avatar` | `VARCHAR(20)` | não | `'indigo'` | — | Chave da cor do avatar escolhida em "Meu perfil" (lista fixa validada na API). As chaves são estáveis e a interface traduz para a paleta: `indigo` = framboesa, `sky` = ameixa, `emerald` = oliva, `slate` = areia; `teal`, `amber`, `orange`, `rose`, `violet` mantêm o nome. |
 | `ativo` | `BOOLEAN` | não | `true` | — | Conta desativada não entra e perde o acesso imediatamente. |
 | `criado_em` | `TIMESTAMPTZ(3)` | não | `now()` | — | Data de cadastro. |
 | `atualizado_em` | `TIMESTAMPTZ(3)` | não | `now()` | — | Última alteração (mantida pelo Prisma). |

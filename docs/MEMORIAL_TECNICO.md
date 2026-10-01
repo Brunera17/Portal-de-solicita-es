@@ -172,7 +172,7 @@ Para cada tecnologia: **motivo** da escolha, **benefícios** no cenário, **vant
 
 ### 4.14 Tailwind CSS 4 (+ tailwind-merge e clsx)
 - **Motivo:** estilização consistente direto nos componentes.
-- **Benefícios:** espaçamentos, cores e tipografia padronizados; responsividade por breakpoints; no Tailwind 4 as cores são variáveis CSS, o que viabilizou o modo escuro por remapeamento de tokens (seção 5.9). `tailwind-merge` resolve conflitos de classes ao customizar componentes.
+- **Benefícios:** espaçamentos, cores e tipografia padronizados; responsividade por breakpoints; no Tailwind 4 as cores são variáveis CSS (`@theme`), o que permitiu definir a **paleta do projeto como tokens** e o modo escuro por remapeamento, ambos concentrados em um único arquivo (seção 5.9). `tailwind-merge` resolve conflitos de classes ao customizar componentes.
 - **Vantagens:** sobre CSS/SCSS próprio, não há arquivos de estilo crescendo sem controle; sobre bibliotecas prontas (Material UI), controle total do visual e pacote menor.
 - **Impacto:** o visual é consistente em todas as telas, e o tema escuro ficou concentrado em um único arquivo.
 
@@ -313,7 +313,8 @@ Decisões principais:
 - **Responsiva:** tabela no desktop e cartões no celular; navegação lateral fixa no desktop e em gaveta no celular; filtros recolhíveis.
 - **Estados sempre tratados:** carregando, vazio, erro com "Tentar novamente", confirmação antes de ações destrutivas.
 - **Filtros na URL:** podem ser compartilhados e o "voltar" do navegador funciona.
-- **Modo escuro** (claro / escuro / segue o sistema) feito **remapeando as variáveis de cor do Tailwind** sob a classe `.dark`, em vez de duplicar classes `dark:` em cada componente. Os valores foram gerados a partir da paleta oficial do Tailwind; um script no `index.html` aplica o tema antes da primeira pintura (sem "flash" claro).
+- **Identidade visual:** paleta própria — framboesa `#ba456a` (cor principal), rosa `#d04969`, ameixa `#784d5f`, areia `#d8d3ab` e sálvia `#b0b19f`. A partir dessas cinco cores foram geradas escalas completas (50 a 950) no espaço de cor **OKLCH**, que mantém a percepção de luminosidade uniforme entre tons. Os tokens têm nomes do projeto — `primaria`, `neutra` (fundos, bordas, texto), `ameixa` (status *Aberto*) e `oliva` (status *Concluído*) — em vez dos nomes padrão do Tailwind. Os neutros seguem a escala de luminosidade do `slate` original para preservar o **contraste do texto** (todos os textos ≥ 4,5:1, critério AA da WCAG). Fundos sólidos com texto branco (botões, selos, logo) usam um token separado, `marca`, igual nos dois temas, para que o texto continue legível também no modo escuro. Âmbar (*Em Atendimento*) e vermelho (ações destrutivas) foram mantidos por terem significado próprio.
+- **Modo escuro** (claro / escuro / segue o sistema) feito **remapeando as variáveis de cor** sob a classe `.dark` (tons claros ↔ escuros), em vez de duplicar classes `dark:` em cada componente. Os valores vêm da paleta do projeto e da paleta oficial do Tailwind (cores de avatar, âmbar, vermelho); um script no `index.html` aplica o tema antes da primeira pintura (sem "flash" claro).
 - **Acessibilidade:** rótulos associados aos campos, `aria-invalid` e mensagens de erro ligadas ao campo, diálogos nativos (`<dialog>`: foco preso e Esc), Kanban operável por teclado, respeito a `prefers-reduced-motion`.
 
 ---

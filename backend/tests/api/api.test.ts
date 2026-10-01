@@ -2,6 +2,7 @@
  * Testes de integração: sobem a aplicação Express e usam o banco definido em DATABASE_URL.
  * ATENÇÃO: o banco é repopulado com os dados de demonstração antes da execução.
  */
+import './banco-de-teste';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';

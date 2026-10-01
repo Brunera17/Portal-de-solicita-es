@@ -3,6 +3,7 @@
  * gestão de usuários, comentários (públicos e internos) e "meu perfil".
  * ATENÇÃO: o banco é repopulado com os dados de demonstração antes da execução.
  */
+import './banco-de-teste';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { app } from '../../src/app';

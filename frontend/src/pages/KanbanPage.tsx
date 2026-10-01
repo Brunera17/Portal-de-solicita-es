@@ -178,7 +178,7 @@ export function KanbanPage() {
           ))}
         </Select>
         {gerente && (
-          <div role="radiogroup" aria-label="Atendimentos exibidos" className="flex rounded-lg bg-slate-100 p-1 sm:ml-auto">
+          <div role="radiogroup" aria-label="Atendimentos exibidos" className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-200 sm:ml-auto">
             {(['todas', 'minhas'] as const).map((opcao) => (
               <button
                 key={opcao}

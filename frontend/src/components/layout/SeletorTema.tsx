@@ -14,7 +14,7 @@ export function SeletorTema() {
   const { preferencia, definir } = useTema()
 
   return (
-    <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+    <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-200">
       {opcoes.map(({ valor, rotulo, icone: Icone }) => (
         <button
           key={valor}

@@ -12,7 +12,7 @@ CREATE TYPE "perfil_usuario" AS ENUM ('SOLICITANTE', 'ATENDENTE', 'GERENTE');
 CREATE TYPE "status_solicitacao" AS ENUM ('ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO');
 
 -- CreateEnum
-CREATE TYPE "tipo_notificacao" AS ENUM ('STATUS_ALTERADO', 'NOVO_COMENTARIO', 'NOVA_SOLICITACAO');
+CREATE TYPE "tipo_notificacao" AS ENUM ('STATUS_ALTERADO', 'NOVO_COMENTARIO', 'NOVA_SOLICITACAO', 'REDESIGNADA');
 
 -- CreateTable
 CREATE TABLE "usuarios" (
@@ -92,6 +92,19 @@ CREATE TABLE "notificacoes" (
     CONSTRAINT "notificacoes_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "redesignacoes" (
+    "id" SERIAL NOT NULL,
+    "solicitacao_id" INTEGER NOT NULL,
+    "de_responsavel_id" INTEGER NOT NULL,
+    "para_responsavel_id" INTEGER NOT NULL,
+    "redesignado_por_id" INTEGER NOT NULL,
+    "motivo" VARCHAR(300),
+    "redesignado_em" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "redesignacoes_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "usuarios_usuario_key" ON "usuarios"("usuario");
 
@@ -121,6 +134,9 @@ CREATE INDEX "comentarios_solicitacao_id_criado_em_idx" ON "comentarios"("solici
 
 -- CreateIndex
 CREATE INDEX "notificacoes_destinatario_id_lida_criado_em_idx" ON "notificacoes"("destinatario_id", "lida", "criado_em");
+
+-- CreateIndex
+CREATE INDEX "redesignacoes_solicitacao_id_idx" ON "redesignacoes"("solicitacao_id");
 
 -- AddForeignKey
 ALTER TABLE "solicitacoes" ADD CONSTRAINT "solicitacoes_categoria_id_fkey" FOREIGN KEY ("categoria_id") REFERENCES "categorias"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -152,3 +168,19 @@ ALTER TABLE "notificacoes" ADD CONSTRAINT "notificacoes_autor_id_fkey" FOREIGN K
 -- AddForeignKey
 ALTER TABLE "notificacoes" ADD CONSTRAINT "notificacoes_solicitacao_id_fkey" FOREIGN KEY ("solicitacao_id") REFERENCES "solicitacoes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "redesignacoes" ADD CONSTRAINT "redesignacoes_solicitacao_id_fkey" FOREIGN KEY ("solicitacao_id") REFERENCES "solicitacoes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "redesignacoes" ADD CONSTRAINT "redesignacoes_de_responsavel_id_fkey" FOREIGN KEY ("de_responsavel_id") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "redesignacoes" ADD CONSTRAINT "redesignacoes_para_responsavel_id_fkey" FOREIGN KEY ("para_responsavel_id") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "redesignacoes" ADD CONSTRAINT "redesignacoes_redesignado_por_id_fkey" FOREIGN KEY ("redesignado_por_id") REFERENCES "usuarios"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+-- Garantia no próprio banco: não existe redesignação para a mesma pessoa
+ALTER TABLE "redesignacoes" ADD CONSTRAINT "redesignacoes_responsaveis_distintos_chk"
+  CHECK ("de_responsavel_id" <> "para_responsavel_id");

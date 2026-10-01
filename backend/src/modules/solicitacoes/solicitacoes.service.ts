@@ -3,6 +3,7 @@ import { AppError, BusinessRuleError, ForbiddenError, NotFoundError } from '../.
 import { ehEquipe } from '../../lib/permissoes';
 import type { UsuarioAutenticado } from '../../types/express';
 import { categoriasRepository } from '../categorias/categorias.repository';
+import { usuariosRepository } from '../usuarios/usuarios.repository';
 import { notificacoesService } from '../notificacoes/notificacoes.service';
 import {
   solicitacoesRepository,
@@ -10,7 +11,7 @@ import {
   type SolicitacoesRepository,
 } from './solicitacoes.repository';
 import { LIMITE_EM_ATENDIMENTO, podeSerAlterada, podeTransicionar, ROTULOS_STATUS } from './solicitacoes.rules';
-import type { ListarSolicitacoesInput, SolicitacaoInput } from './solicitacoes.schemas';
+import type { ListarSolicitacoesInput, RedesignarInput, SolicitacaoInput } from './solicitacoes.schemas';
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
@@ -37,11 +38,13 @@ interface Dependencias {
   categorias: { buscarPorId(id: number): Promise<{ id: number; nome: string; ativa: boolean } | null> };
   notificacoes: Pick<
     typeof notificacoesService,
-    'statusAlterado' | 'novaSolicitacao' | 'marcarLidasDaSolicitacao' | 'solicitacoesNaoVistas'
+    'statusAlterado' | 'novaSolicitacao' | 'marcarLidasDaSolicitacao' | 'solicitacoesNaoVistas' | 'redesignada'
   >;
+  /** Só o necessário para validar quem pode assumir um atendimento. */
+  equipe: { buscarMembroAtivo(id: number): Promise<{ id: number; nome: string } | null> };
 }
 
-export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dependencias) {
+export function criarSolicitacoesService({ repo, categorias, notificacoes, equipe }: Dependencias) {
   /**
    * Novas solicitações exigem categoria ativa. Na edição, manter a categoria atual é
    * permitido mesmo que ela tenha sido desativada depois da abertura.
@@ -170,6 +173,39 @@ export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dep
       return buscarVisivel(id, usuario);
     },
 
+    /** Gerente troca o responsável de uma solicitação em atendimento. */
+    async redesignar(id: number, { responsavelId, motivo }: RedesignarInput, usuario: UsuarioAutenticado) {
+      const solicitacao = await buscarVisivel(id, usuario);
+      const anterior = solicitacao.responsavel;
+
+      if (solicitacao.status !== StatusSolicitacao.EM_ATENDIMENTO || !anterior) {
+        throw new BusinessRuleError('Só é possível redesignar solicitações em atendimento', 'REDESIGNACAO_INVALIDA');
+      }
+      if (responsavelId === anterior.id) {
+        throw new BusinessRuleError(`${anterior.nome} já é o responsável por esta solicitação`, 'MESMO_RESPONSAVEL');
+      }
+
+      const novo = await equipe.buscarMembroAtivo(responsavelId);
+      if (!novo) {
+        throw new BusinessRuleError('O novo responsável deve ser um atendente ou gerente ativo', 'RESPONSAVEL_INVALIDO');
+      }
+
+      const carga = await repo.contarEmAtendimento(novo.id);
+      if (carga >= LIMITE_EM_ATENDIMENTO) {
+        throw new BusinessRuleError(
+          `${novo.nome} já tem ${carga} solicitações em atendimento (limite: ${LIMITE_EM_ATENDIMENTO})`,
+          'LIMITE_EM_ATENDIMENTO',
+        );
+      }
+
+      if (!(await repo.redesignar(id, anterior.id, novo.id, usuario.id, motivo))) {
+        throw new AppError(409, 'CONFLITO', 'A solicitação foi alterada por outro usuário. Atualize a página e tente novamente.');
+      }
+
+      await notificacoes.redesignada(solicitacao, anterior, novo, usuario);
+      return buscarVisivel(id, usuario);
+    },
+
     async resumo(usuario: UsuarioAutenticado) {
       const contagens = await repo.contarPorStatus(escopoDoUsuario(usuario));
       const quantidade = (status: StatusSolicitacao) =>
@@ -188,4 +224,5 @@ export const solicitacoesService = criarSolicitacoesService({
   repo: solicitacoesRepository,
   categorias: categoriasRepository,
   notificacoes: notificacoesService,
+  equipe: usuariosRepository,
 });

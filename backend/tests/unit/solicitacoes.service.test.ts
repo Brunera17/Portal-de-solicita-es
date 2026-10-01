@@ -28,6 +28,7 @@ function solicitacao(status: StatusSolicitacao, dono = maria, categoria = TI): S
     solicitante: { id: dono.id, nome: dono.nome, corAvatar: 'indigo' },
     responsavel: null,
     historico: [],
+    redesignacoes: [],
   };
 }
 
@@ -42,6 +43,7 @@ function criarRepoFake() {
     excluirSeAberta: vi.fn().mockResolvedValue(true),
     contarEmAtendimento: vi.fn().mockResolvedValue(0),
     alterarStatus: vi.fn().mockResolvedValue(true),
+    redesignar: vi.fn().mockResolvedValue(true),
     contarPorStatus: vi.fn().mockResolvedValue([]),
   } satisfies Record<keyof SolicitacoesRepository, unknown>;
 }
@@ -52,6 +54,7 @@ function criarNotificacoesFake() {
     novaSolicitacao: vi.fn(async () => undefined),
     marcarLidasDaSolicitacao: vi.fn(async () => undefined),
     solicitacoesNaoVistas: vi.fn(async () => new Set<number>()),
+    redesignada: vi.fn(async () => undefined),
   };
 }
 
@@ -67,6 +70,7 @@ describe('solicitacoesService', () => {
       repo: repo as unknown as SolicitacoesRepository,
       categorias: { buscarPorId: async (id: number) => categoriasPorId.get(id) ?? null },
       notificacoes,
+      equipe: { buscarMembroAtivo: async (id: number) => [atendente, gerente].find((u) => u.id === id) ?? null },
     });
   });
 
@@ -274,6 +278,64 @@ describe('solicitacoesService', () => {
       await expect(service.alterarStatus(10, 'EM_ATENDIMENTO', atendente)).rejects.toMatchObject({
         statusCode: 409,
       });
+    });
+  });
+
+  describe('redesignar', () => {
+    const emAtendimentoCom = (responsavel: { id: number; nome: string }) => ({
+      ...solicitacao('EM_ATENDIMENTO'),
+      responsavel: { id: responsavel.id, nome: responsavel.nome, corAvatar: 'teal' },
+    });
+
+    it('troca o responsável, registra o motivo e notifica', async () => {
+      const s = emAtendimentoCom(atendente);
+      repo.buscarPorId.mockResolvedValue(s);
+      await service.redesignar(10, { responsavelId: gerente.id, motivo: 'Férias' }, gerente);
+      expect(repo.redesignar).toHaveBeenCalledWith(10, atendente.id, gerente.id, gerente.id, 'Férias');
+      expect(notificacoes.redesignada).toHaveBeenCalledWith(
+        s,
+        s.responsavel,
+        expect.objectContaining({ id: gerente.id, nome: gerente.nome }),
+        gerente,
+      );
+    });
+
+    it.each(['ABERTO', 'CONCLUIDO'] as const)('recusa solicitação %s', async (status) => {
+      repo.buscarPorId.mockResolvedValue(solicitacao(status));
+      await expect(service.redesignar(10, { responsavelId: gerente.id }, gerente)).rejects.toMatchObject({
+        code: 'REDESIGNACAO_INVALIDA',
+      });
+    });
+
+    it('recusa redesignar para quem já é o responsável', async () => {
+      repo.buscarPorId.mockResolvedValue(emAtendimentoCom(atendente));
+      await expect(service.redesignar(10, { responsavelId: atendente.id }, gerente)).rejects.toMatchObject({
+        code: 'MESMO_RESPONSAVEL',
+      });
+    });
+
+    it('recusa quem não é da equipe ativa (ex.: solicitante)', async () => {
+      repo.buscarPorId.mockResolvedValue(emAtendimentoCom(atendente));
+      await expect(service.redesignar(10, { responsavelId: maria.id }, gerente)).rejects.toMatchObject({
+        code: 'RESPONSAVEL_INVALIDO',
+      });
+    });
+
+    it('respeita o limite de atendimentos de quem vai receber', async () => {
+      repo.buscarPorId.mockResolvedValue(emAtendimentoCom(atendente));
+      repo.contarEmAtendimento.mockResolvedValue(3);
+      await expect(service.redesignar(10, { responsavelId: gerente.id }, gerente)).rejects.toMatchObject({
+        code: 'LIMITE_EM_ATENDIMENTO',
+      });
+      expect(repo.contarEmAtendimento).toHaveBeenCalledWith(gerente.id);
+      expect(repo.redesignar).not.toHaveBeenCalled();
+    });
+
+    it('retorna 409 e não notifica se o responsável mudou durante a operação', async () => {
+      repo.buscarPorId.mockResolvedValue(emAtendimentoCom(atendente));
+      repo.redesignar.mockResolvedValue(false);
+      await expect(service.redesignar(10, { responsavelId: gerente.id }, gerente)).rejects.toMatchObject({ statusCode: 409 });
+      expect(notificacoes.redesignada).not.toHaveBeenCalled();
     });
   });
 

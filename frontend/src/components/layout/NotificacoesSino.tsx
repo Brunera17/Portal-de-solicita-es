@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowRightLeft, Bell, CheckCheck, FilePlus2, MessageSquare } from 'lucide-react'
+import { ArrowRightLeft, Bell, CheckCheck, FilePlus2, MessageSquare, UserRoundCog } from 'lucide-react'
 import { useNotificacoes } from '@/hooks/useNotificacoes'
 import { cn } from '@/lib/cn'
 import { formatarRelativo } from '@/lib/format'
@@ -107,6 +107,8 @@ export function NotificacoesSino({ posicao }: Props) {
                             <MessageSquare aria-hidden className="size-2.5" />
                           ) : n.tipo === 'NOVA_SOLICITACAO' ? (
                             <FilePlus2 aria-hidden className="size-2.5" />
+                          ) : n.tipo === 'REDESIGNADA' ? (
+                            <UserRoundCog aria-hidden className="size-2.5" />
                           ) : (
                             <ArrowRightLeft aria-hidden className="size-2.5" />
                           )}

@@ -6,6 +6,7 @@ import type {
   FiltrosSolicitacao,
   ListaNotificacoes,
   LoginResposta,
+  MembroEquipe,
   Paginado,
   Perfil,
   ResumoDashboard,
@@ -40,6 +41,8 @@ export const solicitacoesApi = {
   excluir: (id: number) => api.delete(`/solicitacoes/${id}`),
   alterarStatus: (id: number, status: Status) =>
     api.patch<SolicitacaoDetalhe>(`/solicitacoes/${id}/status`, { status }).then((r) => r.data),
+  redesignar: (id: number, responsavelId: number, motivo?: string) =>
+    api.patch<SolicitacaoDetalhe>(`/solicitacoes/${id}/responsavel`, { responsavelId, motivo }).then((r) => r.data),
 }
 
 export const comentariosApi = {
@@ -59,6 +62,8 @@ export const categoriasApi = {
 
 export const usuariosApi = {
   listar: () => api.get<UsuarioAdmin[]>('/usuarios').then((r) => r.data),
+  /** Equipe ativa com a carga atual de cada pessoa (para redesignar). */
+  listarEquipe: () => api.get<MembroEquipe[]>('/usuarios/equipe').then((r) => r.data),
   criar: (dados: { nome: string; usuario: string; senha: string; perfil: Perfil }) =>
     api.post<UsuarioAdmin>('/usuarios', dados).then((r) => r.data),
   atualizar: (id: number, dados: { nome?: string; perfil?: Perfil; ativo?: boolean }) =>

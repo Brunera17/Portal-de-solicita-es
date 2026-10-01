@@ -23,6 +23,10 @@ export const usuariosService = {
     return usuariosRepository.listar();
   },
 
+  listarEquipe() {
+    return usuariosRepository.listarEquipeComCarga();
+  },
+
   async criar({ senha, ...dados }: CriarUsuarioInput) {
     // Usuário duplicado vira 409 pelo errorHandler (violação de UNIQUE, P2002)
     return usuariosRepository.criar({ ...dados, senhaHash: await bcrypt.hash(senha, CUSTO_BCRYPT) });

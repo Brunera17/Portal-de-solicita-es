@@ -61,9 +61,25 @@ export interface HistoricoStatus {
   alteradoPor: PessoaResumo
 }
 
+export interface Redesignacao {
+  id: number
+  motivo: string | null
+  redesignadoEm: string
+  deResponsavel: PessoaResumo
+  paraResponsavel: PessoaResumo
+  redesignadoPor: PessoaResumo
+}
+
 export interface SolicitacaoDetalhe extends SolicitacaoResumo {
   descricao: string
   historico: HistoricoStatus[]
+  redesignacoes: Redesignacao[]
+}
+
+/** Membro ativo da equipe com a quantidade de solicitações que atende agora. */
+export interface MembroEquipe extends PessoaResumo {
+  perfil: Perfil
+  emAtendimento: number
 }
 
 export interface Comentario {
@@ -105,7 +121,7 @@ export interface ResumoDashboard {
 
 export interface Notificacao {
   id: number
-  tipo: 'STATUS_ALTERADO' | 'NOVO_COMENTARIO' | 'NOVA_SOLICITACAO'
+  tipo: 'STATUS_ALTERADO' | 'NOVO_COMENTARIO' | 'NOVA_SOLICITACAO' | 'REDESIGNADA'
   mensagem: string
   lida: boolean
   criadoEm: string

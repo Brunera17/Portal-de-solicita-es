@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { toast } from '@/lib/avisos'
-import { ArrowLeft, ArrowRight, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Pencil, Trash2, UserRoundCog } from 'lucide-react'
 import { mensagemDeErro, statusHttp } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'
 import { useAlterarStatus, useExcluirSolicitacao, useSolicitacao } from '@/hooks/useSolicitacoes'
-import { ehEquipe, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
+import { cn } from '@/lib/cn'
+import { ehEquipe, ehGerente, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
 import { formatarCodigo, formatarDataHora } from '@/lib/format'
-import type { HistoricoStatus, SolicitacaoDetalhe } from '@/types'
+import type { HistoricoStatus, Redesignacao, SolicitacaoDetalhe } from '@/types'
 import { BotaoLink, Button } from '@/components/ui/Button'
 import { CategoriaBadge, StatusBadge } from '@/components/ui/Badges'
 import { Comentarios } from '@/components/solicitacoes/Comentarios'
+import { RedesignarDialogo } from '@/components/solicitacoes/RedesignarDialogo'
 import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
 import { DialogoConfirmacao } from '@/components/ui/DialogoConfirmacao'
@@ -43,11 +45,12 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
   const navigate = useNavigate()
   const excluir = useExcluirSolicitacao()
   const alterarStatus = useAlterarStatus(s.id)
-  const [dialogo, setDialogo] = useState<'excluir' | 'status' | null>(null)
+  const [dialogo, setDialogo] = useState<'excluir' | 'status' | 'redesignar' | null>(null)
 
   const ehDono = s.solicitante.id === usuario.id
   const podeAlterar = ehDono && s.status === 'ABERTO'
   const proximaAcao = ehEquipe(usuario.perfil) ? PROXIMA_ACAO[s.status] : null
+  const podeRedesignar = ehGerente(usuario.perfil) && s.status === 'EM_ATENDIMENTO'
 
   const confirmarExclusao = async () => {
     try {
@@ -86,7 +89,7 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
           <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-900">{s.titulo}</h1>
         </div>
 
-        {(podeAlterar || proximaAcao) && (
+        {(podeAlterar || proximaAcao || podeRedesignar) && (
           <div className="flex shrink-0 flex-wrap gap-2">
             {podeAlterar && (
               <>
@@ -99,6 +102,12 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
                   Excluir
                 </Button>
               </>
+            )}
+            {podeRedesignar && (
+              <Button variante="secundario" onClick={() => setDialogo('redesignar')}>
+                <UserRoundCog aria-hidden className="size-4" />
+                Redesignar
+              </Button>
             )}
             {proximaAcao && (
               <Button onClick={() => setDialogo('status')}>
@@ -149,7 +158,7 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
 
           <Card className="p-6">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Histórico</h2>
-            <LinhaDoTempo historico={s.historico} />
+            <LinhaDoTempo solicitacao={s} />
           </Card>
         </div>
       </div>
@@ -165,6 +174,10 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
       >
         A solicitação <strong>{formatarCodigo(s.id)}</strong> será removida permanentemente. Esta ação não pode ser desfeita.
       </DialogoConfirmacao>
+
+      {podeRedesignar && (
+        <RedesignarDialogo solicitacao={s} aberto={dialogo === 'redesignar'} onFechar={() => setDialogo(null)} />
+      )}
 
       {proximaAcao && (
         <DialogoConfirmacao
@@ -184,27 +197,59 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
   )
 }
 
-function LinhaDoTempo({ historico }: { historico: HistoricoStatus[] }) {
+type Evento =
+  | { tipo: 'status'; em: string; item: HistoricoStatus }
+  | { tipo: 'redesignacao'; em: string; item: Redesignacao }
+
+/** Mudanças de status e redesignações numa única linha do tempo, em ordem cronológica. */
+function LinhaDoTempo({ solicitacao }: { solicitacao: SolicitacaoDetalhe }) {
+  const eventos: Evento[] = [
+    ...solicitacao.historico.map((item) => ({ tipo: 'status' as const, em: item.alteradoEm, item })),
+    ...solicitacao.redesignacoes.map((item) => ({ tipo: 'redesignacao' as const, em: item.redesignadoEm, item })),
+  ].sort((a, b) => a.em.localeCompare(b.em))
+
   return (
     <ol className="mt-4 space-y-4">
-      {historico.map((h, i) => (
-        <li key={h.id} className="relative pl-6">
-          {i < historico.length - 1 && (
+      {eventos.map((e, i) => (
+        <li key={`${e.tipo}-${e.item.id}`} className="relative pl-6">
+          {i < eventos.length - 1 && (
             <span aria-hidden className="absolute left-[5px] top-4 h-[calc(100%+0.25rem)] w-px bg-slate-200" />
           )}
-          <span aria-hidden className="absolute left-0 top-1.5 size-2.75 rounded-full border-2 border-white bg-indigo-500 ring-1 ring-indigo-200" />
-          <p className="text-sm text-slate-700">
-            {h.statusAnterior ? (
-              <>
-                {ROTULO_STATUS[h.statusAnterior]} → <strong className="font-medium">{ROTULO_STATUS[h.statusNovo]}</strong>
-              </>
-            ) : (
-              <strong className="font-medium">Solicitação aberta</strong>
+          <span
+            aria-hidden
+            className={cn(
+              'absolute left-0 top-1.5 size-2.75 rounded-full border-2 border-surface ring-1',
+              e.tipo === 'status' ? 'bg-indigo-500 ring-indigo-200' : 'bg-amber-500 ring-amber-200',
             )}
-          </p>
-          <p className="text-xs text-slate-500">
-            {h.alteradoPor.nome} · {formatarDataHora(h.alteradoEm)}
-          </p>
+          />
+          {e.tipo === 'status' ? (
+            <>
+              <p className="text-sm text-slate-700">
+                {e.item.statusAnterior ? (
+                  <>
+                    {ROTULO_STATUS[e.item.statusAnterior]} →{' '}
+                    <strong className="font-medium">{ROTULO_STATUS[e.item.statusNovo]}</strong>
+                  </>
+                ) : (
+                  <strong className="font-medium">Solicitação aberta</strong>
+                )}
+              </p>
+              <p className="text-xs text-slate-500">
+                {e.item.alteradoPor.nome} · {formatarDataHora(e.item.alteradoEm)}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-slate-700">
+                Redesignada: {e.item.deResponsavel.nome} →{' '}
+                <strong className="font-medium">{e.item.paraResponsavel.nome}</strong>
+              </p>
+              {e.item.motivo && <p className="text-xs italic text-slate-600">"{e.item.motivo}"</p>}
+              <p className="text-xs text-slate-500">
+                por {e.item.redesignadoPor.nome} · {formatarDataHora(e.item.redesignadoEm)}
+              </p>
+            </>
+          )}
         </li>
       ))}
     </ol>

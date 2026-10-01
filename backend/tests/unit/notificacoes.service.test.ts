@@ -57,6 +57,15 @@ describe('notificacoesService', () => {
     expect(destinatarios()).toEqual([gerente.id]);
   });
 
+  it('redesignação avisa novo e antigo responsável e o solicitante, menos o autor', async () => {
+    await notificacoesService.redesignada(solicitacao, ana, gerente, gerente);
+    expect(destinatarios().sort()).toEqual([ana.id, maria.id].sort());
+    expect(criarVarias.mock.calls[0][0][0]).toMatchObject({
+      tipo: 'REDESIGNADA',
+      mensagem: 'Gabriel Gerente redesignou #0007 "Reembolso" de Ana Atendente para Gabriel Gerente',
+    });
+  });
+
   it('não gera nada quando o único envolvido é o autor', async () => {
     await notificacoesService.novoComentario({ ...solicitacao, responsavel: null }, false, maria);
     expect(criarVarias).not.toHaveBeenCalled();

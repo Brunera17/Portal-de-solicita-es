@@ -28,6 +28,7 @@ enum TipoNotificacao {
   STATUS_ALTERADO
   NOVO_COMENTARIO
   NOVA_SOLICITACAO
+  REDESIGNADA
 
   @@map("tipo_notificacao")
 }
@@ -49,6 +50,9 @@ model Usuario {
   comentarios         Comentario[]
   notificacoes        Notificacao[]     @relation("Destinatario")
   notificacoesGeradas Notificacao[]     @relation("AutorNotificacao")
+  redesignacoesDe     Redesignacao[]    @relation("ResponsavelAnterior")
+  redesignacoesPara   Redesignacao[]    @relation("ResponsavelNovo")
+  redesignacoesFeitas Redesignacao[]    @relation("RedesignadoPor")
 
   @@map("usuarios")
 }
@@ -77,12 +81,13 @@ model Solicitacao {
   criadoEm      DateTime          @default(now()) @map("criado_em") @db.Timestamptz(3)
   atualizadoEm  DateTime          @updatedAt @map("atualizado_em") @db.Timestamptz(3)
 
-  categoria    Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
-  solicitante  Usuario           @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
-  responsavel  Usuario?          @relation("Responsavel", fields: [responsavelId], references: [id], onDelete: Restrict)
-  historico    HistoricoStatus[]
-  comentarios  Comentario[]
-  notificacoes Notificacao[]
+  categoria     Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  solicitante   Usuario           @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
+  responsavel   Usuario?          @relation("Responsavel", fields: [responsavelId], references: [id], onDelete: Restrict)
+  historico     HistoricoStatus[]
+  redesignacoes Redesignacao[]
+  comentarios   Comentario[]
+  notificacoes  Notificacao[]
 
   @@index([status])
   @@index([responsavelId, status])
@@ -140,4 +145,23 @@ model Notificacao {
 
   @@index([destinatarioId, lida, criadoEm])
   @@map("notificacoes")
+}
+
+/// Troca do responsável por uma solicitação em atendimento (feita pelo gerente).
+model Redesignacao {
+  id                Int      @id @default(autoincrement())
+  solicitacaoId     Int      @map("solicitacao_id")
+  deResponsavelId   Int      @map("de_responsavel_id")
+  paraResponsavelId Int      @map("para_responsavel_id")
+  redesignadoPorId  Int      @map("redesignado_por_id")
+  motivo            String?  @db.VarChar(300)
+  redesignadoEm     DateTime @default(now()) @map("redesignado_em") @db.Timestamptz(3)
+
+  solicitacao     Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  deResponsavel   Usuario     @relation("ResponsavelAnterior", fields: [deResponsavelId], references: [id], onDelete: Restrict)
+  paraResponsavel Usuario     @relation("ResponsavelNovo", fields: [paraResponsavelId], references: [id], onDelete: Restrict)
+  redesignadoPor  Usuario     @relation("RedesignadoPor", fields: [redesignadoPorId], references: [id], onDelete: Restrict)
+
+  @@index([solicitacaoId])
+  @@map("redesignacoes")
 }

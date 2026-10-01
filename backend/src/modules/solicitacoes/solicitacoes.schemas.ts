@@ -30,6 +30,17 @@ export const alterarStatusSchema = z.object({
   status: z.enum(StatusSolicitacao, { error: 'Status inválido' }),
 });
 
+export const redesignarSchema = z.object({
+  responsavelId: z.coerce
+    .number({ error: 'Selecione o novo responsável' })
+    .int('Responsável inválido')
+    .positive('Selecione o novo responsável'),
+  motivo: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().trim().max(300, 'O motivo deve ter no máximo 300 caracteres').optional(),
+  ),
+});
+
 export const listarSolicitacoesSchema = z
   .object({
     dataInicio: opcional(dataSchema),
@@ -48,3 +59,4 @@ export const listarSolicitacoesSchema = z
 
 export type SolicitacaoInput = z.infer<typeof solicitacaoSchema>;
 export type ListarSolicitacoesInput = z.infer<typeof listarSolicitacoesSchema>;
+export type RedesignarInput = z.infer<typeof redesignarSchema>;

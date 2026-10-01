@@ -36,6 +36,17 @@ const detalheSelect = {
       alteradoPor: { select: { id: true, nome: true, corAvatar: true } },
     },
   },
+  redesignacoes: {
+    orderBy: { redesignadoEm: 'asc' },
+    select: {
+      id: true,
+      motivo: true,
+      redesignadoEm: true,
+      deResponsavel: { select: { id: true, nome: true, corAvatar: true } },
+      paraResponsavel: { select: { id: true, nome: true, corAvatar: true } },
+      redesignadoPor: { select: { id: true, nome: true, corAvatar: true } },
+    },
+  },
 } satisfies Prisma.SolicitacaoSelect;
 
 export type SolicitacaoDetalhe = Prisma.SolicitacaoGetPayload<{ select: typeof detalheSelect }>;
@@ -117,6 +128,22 @@ export const solicitacoesRepository = {
 
       await tx.historicoStatus.create({
         data: { solicitacaoId: id, statusAnterior: de, statusNovo: para, alteradoPorId },
+      });
+      return true;
+    });
+  },
+
+  /** Troca o responsável só se a solicitação ainda estiver com quem se espera (atômico). */
+  redesignar(id: number, deId: number, paraId: number, porId: number, motivo?: string) {
+    return prisma.$transaction(async (tx) => {
+      const { count } = await tx.solicitacao.updateMany({
+        where: { id, status: StatusSolicitacao.EM_ATENDIMENTO, responsavelId: deId },
+        data: { responsavelId: paraId },
+      });
+      if (count === 0) return false;
+
+      await tx.redesignacao.create({
+        data: { solicitacaoId: id, deResponsavelId: deId, paraResponsavelId: paraId, redesignadoPorId: porId, motivo },
       });
       return true;
     });

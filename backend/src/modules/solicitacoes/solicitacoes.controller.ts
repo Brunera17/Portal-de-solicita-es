@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { usuarioDaRequisicao } from '../../middlewares/authenticate';
 import { idParamSchema } from '../../lib/schemas';
-import { alterarStatusSchema, listarSolicitacoesSchema, solicitacaoSchema } from './solicitacoes.schemas';
+import { alterarStatusSchema, listarSolicitacoesSchema, redesignarSchema, solicitacaoSchema } from './solicitacoes.schemas';
 import { solicitacoesService } from './solicitacoes.service';
 
 export const solicitacoesController = {
@@ -31,6 +31,12 @@ export const solicitacoesController = {
     const { id } = idParamSchema.parse(req.params);
     await solicitacoesService.excluir(id, usuarioDaRequisicao(req));
     res.status(204).send();
+  },
+
+  async redesignar(req: Request, res: Response) {
+    const { id } = idParamSchema.parse(req.params);
+    const dados = redesignarSchema.parse(req.body);
+    res.json(await solicitacoesService.redesignar(id, dados, usuarioDaRequisicao(req)));
   },
 
   async alterarStatus(req: Request, res: Response) {

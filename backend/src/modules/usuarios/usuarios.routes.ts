@@ -10,6 +10,7 @@ export const usuariosRoutes = Router();
 usuariosRoutes.use(authenticate, authorize(Perfil.GERENTE));
 
 usuariosRoutes.get('/', usuariosController.listar);
+usuariosRoutes.get('/equipe', usuariosController.listarEquipe);
 usuariosRoutes.post('/', usuariosController.criar);
 usuariosRoutes.patch('/:id', usuariosController.atualizar);
 usuariosRoutes.put('/:id/senha', usuariosController.redefinirSenha);

@@ -15,6 +15,10 @@ export const usuariosController = {
     res.json(await usuariosService.listar());
   },
 
+  async listarEquipe(_req: Request, res: Response) {
+    res.json(await usuariosService.listarEquipe());
+  },
+
   async criar(req: Request, res: Response) {
     const dados = criarUsuarioSchema.parse(req.body);
     res.status(201).json(await usuariosService.criar(dados));

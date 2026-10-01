@@ -40,6 +40,11 @@ export function useExcluirCategoria() {
   return useMutation({ mutationFn: categoriasApi.excluir, onSuccess: invalidar })
 }
 
+/** Equipe com carga atual: sempre busca de novo ao abrir (a carga muda o tempo todo). */
+export function useEquipe(habilitado: boolean) {
+  return useQuery({ queryKey: ['usuarios', 'equipe'], queryFn: usuariosApi.listarEquipe, enabled: habilitado, staleTime: 0 })
+}
+
 export function useUsuarios() {
   return useQuery({ queryKey: chavesAdmin.usuarios, queryFn: usuariosApi.listar })
 }

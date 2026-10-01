@@ -67,6 +67,16 @@ export const notificacoesService = {
     });
   },
 
+  /** Avisa novo responsável, responsável anterior e solicitante sobre a troca de responsável. */
+  redesignada(solicitacao: SolicitacaoRef, anterior: Autor, novo: Autor, autor: Autor) {
+    return enviar(destinatarios([novo.id, anterior.id, solicitacao.solicitante.id], autor.id), {
+      autorId: autor.id,
+      solicitacaoId: solicitacao.id,
+      tipo: TipoNotificacao.REDESIGNADA,
+      mensagem: `${autor.nome} redesignou ${codigo(solicitacao.id)} "${solicitacao.titulo}" de ${anterior.nome} para ${novo.nome}`.slice(0, 300),
+    });
+  },
+
   /** Avisa o solicitante que o status da solicitação dele mudou. */
   statusAlterado(solicitacao: SolicitacaoRef, novoStatus: StatusSolicitacao, autor: Autor) {
     return enviar(destinatarios([solicitacao.solicitante.id], autor.id), {

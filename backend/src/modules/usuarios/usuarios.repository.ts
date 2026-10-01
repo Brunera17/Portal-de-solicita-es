@@ -1,4 +1,4 @@
-import { Perfil, type Prisma } from '@prisma/client';
+import { Perfil, StatusSolicitacao, type Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 export const camposPublicosUsuario = {
@@ -31,6 +31,30 @@ export const usuariosRepository = {
       select: { id: true },
     });
     return equipe.map((u) => u.id);
+  },
+
+  /** Membro ativo da equipe (atendente ou gerente), ou null. */
+  buscarMembroAtivo(id: number) {
+    return prisma.usuario.findFirst({
+      where: { id, ativo: true, perfil: { in: [Perfil.ATENDENTE, Perfil.GERENTE] } },
+      select: { id: true, nome: true },
+    });
+  },
+
+  /** Equipe ativa com quantas solicitações cada um tem em atendimento agora. */
+  async listarEquipeComCarga() {
+    const equipe = await prisma.usuario.findMany({
+      where: { ativo: true, perfil: { in: [Perfil.ATENDENTE, Perfil.GERENTE] } },
+      select: {
+        id: true,
+        nome: true,
+        perfil: true,
+        corAvatar: true,
+        _count: { select: { atendimentos: { where: { status: StatusSolicitacao.EM_ATENDIMENTO } } } },
+      },
+      orderBy: { nome: 'asc' },
+    });
+    return equipe.map(({ _count, ...u }) => ({ ...u, emAtendimento: _count.atendimentos }));
   },
 
   buscarSenhaHash(id: number) {

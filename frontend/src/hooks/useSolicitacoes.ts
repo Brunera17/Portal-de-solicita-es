@@ -108,6 +108,16 @@ export function useMoverSolicitacao() {
   })
 }
 
+export function useRedesignar(id: number) {
+  const queryClient = useQueryClient()
+  const invalidar = useInvalidarTudo()
+  return useMutation({
+    mutationFn: ({ responsavelId, motivo }: { responsavelId: number; motivo?: string }) =>
+      solicitacoesApi.redesignar(id, responsavelId, motivo),
+    onSuccess: () => Promise.all([invalidar(), queryClient.invalidateQueries({ queryKey: ['usuarios', 'equipe'] })]),
+  })
+}
+
 export function useAlterarStatus(id: number) {
   const invalidar = useInvalidarTudo()
   return useMutation({

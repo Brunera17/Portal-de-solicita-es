@@ -1,3 +1,5 @@
+> **Nota:** este é o plano de ação **inicial**, escrito em 30/09/2026 antes do início do desenvolvimento, mantido como registro do planejamento. O projeto evoluiu além dele (perfil gerente, categorias em tabela, Kanban, notificações, redesignação, modo escuro, entre outros). Para a solução final, veja o [README](../README.md) e o [Memorial Técnico](MEMORIAL_TECNICO.md).
+
 # Plano de Ação: Portal de Solicitações Internas
 
 **Processo:** Seleção DEV Jr. 09/2026, bit Soluções (2ª etapa)

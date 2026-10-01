@@ -8,7 +8,7 @@ Sistema web para colaboradores registrarem demandas internas (TI, RH, Compras, F
 - **Frontend:** React + TypeScript (Vite), Tailwind CSS
 - **Infra:** Docker Compose (PostgreSQL + API + Nginx) e CI no GitHub Actions
 
-📄 Documentos: [Memorial Técnico](docs/MEMORIAL_TECNICO.md) · [Dicionário de Dados](database/DICIONARIO_DE_DADOS.md) · [Script do banco](database/schema.sql) · [Evidências](docs/evidencias/)
+📄 Documentos: [Memorial Técnico](docs/MEMORIAL_TECNICO.md) · [Dicionário de Dados](database/DICIONARIO_DE_DADOS.md) · [Script do banco](database/schema.sql) · [Evidências (capturas de tela)](docs/evidencias/README.md) · [Plano de ação inicial](docs/PLANO_DE_ACAO.md)
 
 ---
 

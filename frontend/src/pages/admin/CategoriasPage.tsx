@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Check, EyeOff, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { errosDeCampo, mensagemDeErro } from '@/api/errors'
 import { useAtualizarCategoria, useCategorias, useCriarCategoria, useExcluirCategoria } from '@/hooks/useAdmin'

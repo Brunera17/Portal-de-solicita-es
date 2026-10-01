@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { ArrowLeft, ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import { mensagemDeErro, statusHttp } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'
@@ -127,6 +127,19 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
                 <dd className="mt-1 flex items-center gap-2 font-medium text-slate-800">
                   <Avatar nome={s.solicitante.nome} cor={s.solicitante.corAvatar} tamanho="sm" />
                   {s.solicitante.nome}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Responsável</dt>
+                <dd className="mt-1 flex items-center gap-2 font-medium text-slate-800">
+                  {s.responsavel ? (
+                    <>
+                      <Avatar nome={s.responsavel.nome} cor={s.responsavel.corAvatar} tamanho="sm" />
+                      {s.responsavel.nome}
+                    </>
+                  ) : (
+                    <span className="font-normal text-slate-400">Aguardando atendimento</span>
+                  )}
                 </dd>
               </div>
               <Info rotulo="Aberta em" valor={formatarDataHora(s.criadoEm)} />

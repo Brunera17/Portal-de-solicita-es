@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Lock, MessageSquare, Send } from 'lucide-react'
 import { errosDeCampo, mensagemDeErro } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'

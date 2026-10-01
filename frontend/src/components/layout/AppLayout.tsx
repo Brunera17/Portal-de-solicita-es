@@ -1,11 +1,14 @@
-import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
-import { ClipboardList, Columns3, LayoutDashboard, LogOut, Menu, Plus, Settings, UserRound, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { ClipboardList, Columns3, LayoutDashboard, LogOut, Menu, Plus, Settings, X } from 'lucide-react'
 import { useAuth, useUsuarioLogado } from '@/hooks/useAuth'
+import { useAvisarNovasNotificacoes } from '@/hooks/useNotificacoes'
 import { cn } from '@/lib/cn'
 import { ehGerente, ROTULO_PERFIL } from '@/lib/dominio'
 import { Avatar } from '@/components/ui/Avatar'
-import { BotaoLink, Button } from '@/components/ui/Button'
+import { BotaoLink } from '@/components/ui/Button'
+import { NotificacoesSino } from './NotificacoesSino'
+import { SeletorTema } from './SeletorTema'
 
 const linksBase = [
   { to: '/', rotulo: 'Dashboard', icone: LayoutDashboard, end: true },
@@ -14,12 +17,26 @@ const linksBase = [
 ]
 const linkAdmin = { to: '/admin', rotulo: 'Administração', icone: Settings, end: false }
 
-export function AppLayout() {
+function Marca() {
+  return (
+    <Link to="/" className="flex items-center gap-2.5 font-semibold text-slate-900">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-indigo-600 text-white">
+        <ClipboardList aria-hidden className="size-4" />
+      </span>
+      <span className="leading-tight">
+        Portal de
+        <br />
+        Solicitações
+      </span>
+    </Link>
+  )
+}
+
+/** Conteúdo da barra lateral, compartilhado entre desktop (fixa) e celular (gaveta). */
+function ConteudoLateral({ comSino }: { comSino: boolean }) {
   const usuario = useUsuarioLogado()
   const { logout } = useAuth()
   const navigate = useNavigate()
-  const [menuAberto, setMenuAberto] = useState(false)
-
   const links = ehGerente(usuario.perfil) ? [...linksBase, linkAdmin] : linksBase
 
   const sair = async () => {
@@ -27,106 +44,136 @@ export function AppLayout() {
     navigate('/login', { replace: true })
   }
 
-  const classeLink = ({ isActive }: { isActive: boolean }) =>
-    cn(
-      'flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-      isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-    )
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between gap-2 px-5 py-5">
+        <Marca />
+        {comSino && <NotificacoesSino posicao="lateral" />}
+      </div>
+
+      <div className="px-3">
+        <BotaoLink to="/solicitacoes/nova" className="w-full">
+          <Plus aria-hidden className="size-4" />
+          Nova solicitação
+        </BotaoLink>
+      </div>
+
+      <nav aria-label="Principal" className="mt-5 flex flex-col gap-1 px-3">
+        {links.map(({ to, rotulo, icone: Icone, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+              )
+            }
+          >
+            <Icone aria-hidden className="size-4.5" />
+            {rotulo}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="mt-auto space-y-3 border-t border-slate-200 p-3">
+        <SeletorTema />
+        <div className="flex items-center gap-1">
+          <Link to="/perfil" title="Meu perfil" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 hover:bg-slate-100">
+            <Avatar nome={usuario.nome} cor={usuario.corAvatar} />
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate text-sm font-medium text-slate-800">{usuario.nome}</span>
+              <span className="block text-xs text-slate-500">{ROTULO_PERFIL[usuario.perfil]}</span>
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={sair}
+            aria-label="Sair"
+            title="Sair"
+            className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-red-600"
+          >
+            <LogOut aria-hidden className="size-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function AppLayout() {
+  useAvisarNovasNotificacoes()
+  const [gavetaAberta, setGavetaAberta] = useState(false)
+  const { pathname } = useLocation()
+
+  // Fecha a gaveta ao navegar
+  const [rotaAnterior, setRotaAnterior] = useState(pathname)
+  if (pathname !== rotaAnterior) {
+    setRotaAnterior(pathname)
+    setGavetaAberta(false)
+  }
+
+  useEffect(() => {
+    if (!gavetaAberta) return
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setGavetaAberta(false)
+    document.addEventListener('keydown', esc)
+    return () => document.removeEventListener('keydown', esc)
+  }, [gavetaAberta])
 
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
-            <span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-white">
-              <ClipboardList aria-hidden className="size-4" />
-            </span>
-            <span className="hidden whitespace-nowrap sm:inline md:hidden xl:inline">Portal de Solicitações</span>
-          </Link>
+      {/* Desktop: barra lateral fixa */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-surface lg:block">
+        <ConteudoLateral comSino />
+      </aside>
 
-          <nav aria-label="Principal" className="hidden items-center gap-1 md:flex xl:ml-4">
-            {links.map(({ to, rotulo, icone: Icone, end }) => (
-              <NavLink key={to} to={to} end={end} className={classeLink}>
-                <Icone aria-hidden className="size-4" />
-                {rotulo}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-3">
-            <BotaoLink to="/solicitacoes/nova" tamanho="sm" className="hidden lg:inline-flex">
-              <Plus aria-hidden className="size-4" />
-              <span className="hidden xl:inline">Nova solicitação</span>
-              <span className="xl:hidden">Nova</span>
-            </BotaoLink>
-
-            <div className="hidden items-center gap-2 border-l border-slate-200 pl-3 md:flex">
-              <Link
-                to="/perfil"
-                title="Meu perfil"
-                className="flex items-center gap-3 rounded-lg p-1 pr-2 hover:bg-slate-100"
-              >
-                <Avatar nome={usuario.nome} cor={usuario.corAvatar} />
-                <span className="hidden whitespace-nowrap leading-tight xl:block">
-                  <span className="block text-sm font-medium text-slate-800">{usuario.nome}</span>
-                  <span className="block text-xs text-slate-500">{ROTULO_PERFIL[usuario.perfil]}</span>
-                </span>
-              </Link>
-              <Button variante="fantasma" tamanho="sm" onClick={sair} aria-label="Sair" title="Sair">
-                <LogOut aria-hidden className="size-4" />
-              </Button>
-            </div>
-
-            <Button
-              variante="fantasma"
-              tamanho="sm"
-              className="md:hidden"
-              aria-label={menuAberto ? 'Fechar menu' : 'Abrir menu'}
-              aria-expanded={menuAberto}
-              onClick={() => setMenuAberto((v) => !v)}
-            >
-              {menuAberto ? <X className="size-5" /> : <Menu className="size-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {menuAberto && (
-          <div className="border-t border-slate-200 bg-white px-4 py-3 md:hidden">
-            <nav aria-label="Principal (móvel)" className="flex flex-col gap-1" onClick={() => setMenuAberto(false)}>
-              {links.map(({ to, rotulo, icone: Icone, end }) => (
-                <NavLink key={to} to={to} end={end} className={classeLink}>
-                  <Icone aria-hidden className="size-4" />
-                  {rotulo}
-                </NavLink>
-              ))}
-              <NavLink to="/solicitacoes/nova" className={classeLink}>
-                <Plus aria-hidden className="size-4" />
-                Nova solicitação
-              </NavLink>
-              <NavLink to="/perfil" className={classeLink}>
-                <UserRound aria-hidden className="size-4" />
-                Meu perfil
-              </NavLink>
-            </nav>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-              <div className="flex items-center gap-3">
-                <Avatar nome={usuario.nome} cor={usuario.corAvatar} />
-                <div className="leading-tight">
-                  <p className="text-sm font-medium text-slate-800">{usuario.nome}</p>
-                  <p className="text-xs text-slate-500">{ROTULO_PERFIL[usuario.perfil]}</p>
-                </div>
-              </div>
-              <Button variante="secundario" tamanho="sm" onClick={sair}>
-                <LogOut aria-hidden className="size-4" />
-                Sair
-              </Button>
-            </div>
-          </div>
-        )}
+      {/* Celular/tablet: barra superior + gaveta */}
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-surface px-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setGavetaAberta(true)}
+          aria-label="Abrir menu"
+          aria-expanded={gavetaAberta}
+          className="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100"
+        >
+          <Menu aria-hidden className="size-5" />
+        </button>
+        <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
+          <span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-white">
+            <ClipboardList aria-hidden className="size-4" />
+          </span>
+          Portal de Solicitações
+        </Link>
+        <NotificacoesSino posicao="abaixo" />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Outlet />
+      {gavetaAberta && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            type="button"
+            aria-label="Fechar menu"
+            onClick={() => setGavetaAberta(false)}
+            className="absolute inset-0 bg-black/50"
+          />
+          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-surface shadow-xl">
+            <button
+              type="button"
+              onClick={() => setGavetaAberta(false)}
+              aria-label="Fechar menu"
+              className="absolute right-3 top-3 grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
+            >
+              <X aria-hidden className="size-5" />
+            </button>
+            <ConteudoLateral comSino={false} />
+          </aside>
+        </div>
+      )}
+
+      <main className="lg:pl-64">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

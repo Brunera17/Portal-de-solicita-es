@@ -4,10 +4,10 @@ export type VarianteBotao = 'primario' | 'secundario' | 'perigo' | 'perigoContor
 export type TamanhoBotao = 'sm' | 'md'
 
 const variantes: Record<VarianteBotao, string> = {
-  primario: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-400',
-  secundario: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 disabled:text-slate-400',
-  perigo: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400',
-  perigoContorno: 'bg-white text-red-600 border border-red-200 hover:bg-red-50 disabled:text-red-300',
+  primario: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-400 dark:hover:bg-indigo-400',
+  secundario: 'bg-surface text-slate-700 border border-slate-300 hover:bg-slate-50 disabled:text-slate-400',
+  perigo: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-400 dark:hover:bg-red-400',
+  perigoContorno: 'bg-surface text-red-600 border border-red-200 hover:bg-red-50 disabled:text-red-300',
   fantasma: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:text-slate-400',
 }
 

@@ -72,7 +72,7 @@ export function LoginPage() {
         <form
           onSubmit={handleSubmit(entrar)}
           noValidate
-          className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+          className="space-y-5 rounded-xl border border-slate-200 bg-surface p-6 shadow-sm"
         >
           {erroLogin && (
             <div role="alert" className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">

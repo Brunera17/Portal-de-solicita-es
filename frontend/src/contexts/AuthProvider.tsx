@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { SESSAO_EXPIRADA_EVENT, tokenStorage } from '@/api/client'
 import { authApi } from '@/api/endpoints'
 import type { Usuario } from '@/types'

@@ -63,7 +63,7 @@ export function DashboardPage() {
               <Link
                 key={chave}
                 to={status ? `/solicitacoes?status=${status}` : '/solicitacoes'}
-                className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow"
+                className="group rounded-xl border border-slate-200 bg-surface p-5 shadow-sm transition hover:border-indigo-300 hover:shadow"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-slate-500">{rotulo}</span>

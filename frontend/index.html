@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Portal de Solicitações Internas" />
     <title>Portal de Solicitações</title>
+    <script>
+      // Aplica o tema antes da primeira pintura (evita o "flash" claro). Mesma regra de src/lib/tema.ts.
+      try {
+        var t = localStorage.getItem('portal.tema')
+        var escuro = t === 'escuro' || (t !== 'claro' && matchMedia('(prefers-color-scheme: dark)').matches)
+        if (escuro) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

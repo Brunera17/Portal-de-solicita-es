@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from '@/lib/cn'
 
 const base =
-  'block w-full rounded-lg border bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 ' +
+  'block w-full rounded-lg border bg-surface px-3 text-sm text-slate-800 placeholder:text-slate-400 ' +
   'focus:outline-none focus:ring-2 disabled:bg-slate-100 disabled:text-slate-500'
 
 const estado = (erro?: string) =>

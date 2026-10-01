@@ -2,7 +2,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { z } from 'zod'
-import { toast } from 'sonner'
+import { toast } from '@/lib/avisos'
 import { Check } from 'lucide-react'
 import { errosDeCampo, mensagemDeErro } from '@/api/errors'
 import { perfilApi } from '@/api/endpoints'
@@ -113,7 +113,7 @@ function FormDados() {
                 title={ROTULO_COR[c]}
                 onClick={() => setValue('corAvatar', c, { shouldDirty: true })}
                 className={cn(
-                  'grid size-9 place-items-center rounded-full ring-offset-2 transition',
+                  'grid size-9 place-items-center rounded-full ring-offset-2 ring-offset-surface transition',
                   CLASSES_AVATAR[c],
                   cor === c ? 'ring-2 ring-indigo-500' : 'hover:ring-2 hover:ring-slate-300',
                 )}

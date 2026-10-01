@@ -40,7 +40,7 @@ export function DialogoConfirmacao({
         if (!carregando) onCancelar()
       }}
       aria-labelledby="dialogo-titulo"
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl bg-surface p-0 text-slate-800 shadow-xl backdrop:bg-black/50"
     >
       <div className="p-6">
         <h2 id="dialogo-titulo" className="text-lg font-semibold text-slate-900">

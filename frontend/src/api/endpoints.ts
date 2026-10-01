@@ -4,6 +4,7 @@ import type {
   Comentario,
   CorAvatar,
   FiltrosSolicitacao,
+  ListaNotificacoes,
   LoginResposta,
   Paginado,
   Perfil,
@@ -63,6 +64,12 @@ export const usuariosApi = {
   atualizar: (id: number, dados: { nome?: string; perfil?: Perfil; ativo?: boolean }) =>
     api.patch<UsuarioAdmin>(`/usuarios/${id}`, dados).then((r) => r.data),
   redefinirSenha: (id: number, senha: string) => api.put(`/usuarios/${id}/senha`, { senha }),
+}
+
+export const notificacoesApi = {
+  listar: () => api.get<ListaNotificacoes>('/notificacoes').then((r) => r.data),
+  marcarLida: (id: number) => api.patch(`/notificacoes/${id}/lida`),
+  marcarTodasLidas: () => api.post('/notificacoes/lidas'),
 }
 
 export const dashboardApi = {

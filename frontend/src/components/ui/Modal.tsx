@@ -30,7 +30,7 @@ export function Modal({ aberto, titulo, descricao, onFechar, bloqueado = false, 
         if (!bloqueado) onFechar()
       }}
       aria-labelledby="modal-titulo"
-      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl bg-surface p-0 text-slate-800 shadow-xl backdrop:bg-black/50"
     >
       <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
         <div>

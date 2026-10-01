@@ -13,17 +13,17 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { toast } from 'sonner'
-import { GripVertical, Info, Search } from 'lucide-react'
+import { toast } from '@/lib/avisos'
+import { GripVertical, Info, Search, UserCheck } from 'lucide-react'
 import { mensagemDeErro } from '@/api/errors'
 import { useCategorias } from '@/hooks/useAdmin'
 import { useUsuarioLogado } from '@/hooks/useAuth'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useListaSolicitacoes, useMoverSolicitacao } from '@/hooks/useSolicitacoes'
 import { cn } from '@/lib/cn'
-import { ehEquipe, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
+import { ehEquipe, ehGerente, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
 import { formatarCodigo, formatarData } from '@/lib/format'
-import { STATUS, type SolicitacaoResumo, type Status } from '@/types'
+import { LIMITE_EM_ATENDIMENTO, STATUS, type SolicitacaoResumo, type Status } from '@/types'
 import { Avatar } from '@/components/ui/Avatar'
 import { CategoriaBadge } from '@/components/ui/Badges'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
@@ -43,6 +43,8 @@ interface Arrastando {
   destinoPermitido: Status | null
 }
 
+type Escopo = 'todas' | 'minhas'
+
 /** Mensagens do leitor de tela em português. */
 const anuncios: Announcements = {
   onDragStart: ({ active }) => `Solicitação ${active.data.current?.titulo} selecionada.`,
@@ -54,8 +56,15 @@ const anuncios: Announcements = {
 export function KanbanPage() {
   const usuario = useUsuarioLogado()
   const podeMover = ehEquipe(usuario.perfil)
+  const gerente = ehGerente(usuario.perfil)
   const categorias = useCategorias()
   const mover = useMoverSolicitacao()
+
+  // Atendente vê só os próprios atendimentos; o gerente escolhe entre todos e os dele.
+  // A coluna "Aberto" é a fila comum e não é filtrada.
+  const [escopoGerente, setEscopoGerente] = useState<Escopo>('todas')
+  const escopo: Escopo = gerente ? escopoGerente : 'minhas'
+  const filtrarResponsavel = podeMover && escopo === 'minhas' ? usuario.id : undefined
 
   const [busca, setBusca] = useState('')
   const [categoriaId, setCategoriaId] = useState<number | undefined>()
@@ -67,9 +76,14 @@ export function KanbanPage() {
   const filtros = { q: buscaAtrasada || undefined, categoriaId, pagina: 1, porPagina: LIMITE_POR_COLUNA }
   const colunas = {
     ABERTO: useListaSolicitacoes({ ...filtros, status: 'ABERTO' }),
-    EM_ATENDIMENTO: useListaSolicitacoes({ ...filtros, status: 'EM_ATENDIMENTO' }),
-    CONCLUIDO: useListaSolicitacoes({ ...filtros, status: 'CONCLUIDO' }),
+    EM_ATENDIMENTO: useListaSolicitacoes({ ...filtros, status: 'EM_ATENDIMENTO', responsavelId: filtrarResponsavel }),
+    CONCLUIDO: useListaSolicitacoes({ ...filtros, status: 'CONCLUIDO', responsavelId: filtrarResponsavel }),
   }
+  // Carga atual da pessoa logada (independe de filtros), para o limite de atendimentos
+  const minhaCargaConsulta = useListaSolicitacoes({ status: 'EM_ATENDIMENTO', responsavelId: usuario.id, pagina: 1, porPagina: 1 })
+  const pendentesParaMim = [...pendentes.values()].filter((s) => s === 'EM_ATENDIMENTO').length
+  const minhaCarga = (minhaCargaConsulta.data?.paginacao.total ?? 0) + pendentesParaMim
+  const noLimite = minhaCarga >= LIMITE_EM_ATENDIMENTO
 
   const sensores = useSensors(
     // A distância mínima permite clicar no cartão (abrir detalhes) sem iniciar o arraste
@@ -81,12 +95,18 @@ export function KanbanPage() {
     const todos = STATUS.flatMap((s) => colunas[s].data?.dados ?? [])
     return todos
       .filter((s) => (pendentes.get(s.id) ?? s.status) === status)
-      .map((s) => (pendentes.has(s.id) ? { ...s, status } : s))
+      .map((s) =>
+        pendentes.has(s.id)
+          ? { ...s, status, responsavel: status === 'EM_ATENDIMENTO' ? { id: usuario.id, nome: usuario.nome, corAvatar: usuario.corAvatar } : s.responsavel }
+          : s,
+      )
   }
 
   const aoIniciar = ({ active }: DragStartEvent) => {
     const solicitacao = active.data.current as SolicitacaoResumo
-    setArrastando({ solicitacao, destinoPermitido: PROXIMA_ACAO[solicitacao.status]?.status ?? null })
+    const proximo = PROXIMA_ACAO[solicitacao.status]?.status ?? null
+    // No limite, a coluna "Em Atendimento" não fica disponível como destino
+    setArrastando({ solicitacao, destinoPermitido: proximo === 'EM_ATENDIMENTO' && noLimite ? null : proximo })
   }
 
   const aoSoltar = ({ active, over }: DragEndEvent) => {
@@ -98,6 +118,13 @@ export function KanbanPage() {
     if (PROXIMA_ACAO[solicitacao.status]?.status !== destino) {
       toast.warning(
         `Não é possível mover de "${ROTULO_STATUS[solicitacao.status]}" para "${ROTULO_STATUS[destino]}". O atendimento só avança uma etapa por vez.`,
+      )
+      return
+    }
+
+    if (destino === 'EM_ATENDIMENTO' && noLimite) {
+      toast.warning(
+        `Você já tem ${minhaCarga} solicitações em atendimento (limite: ${LIMITE_EM_ATENDIMENTO}). Conclua uma antes de iniciar outra.`,
       )
       return
     }
@@ -150,13 +177,39 @@ export function KanbanPage() {
             <option key={c.id} value={c.id}>{c.nome}</option>
           ))}
         </Select>
+        {gerente && (
+          <div role="radiogroup" aria-label="Atendimentos exibidos" className="flex rounded-lg bg-slate-100 p-1 sm:ml-auto">
+            {(['todas', 'minhas'] as const).map((opcao) => (
+              <button
+                key={opcao}
+                type="button"
+                role="radio"
+                aria-checked={escopoGerente === opcao}
+                onClick={() => setEscopoGerente(opcao)}
+                className={cn(
+                  'flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
+                  escopoGerente === opcao ? 'bg-surface text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800',
+                )}
+              >
+                {opcao === 'todas' ? 'Todas' : 'Minhas'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {!podeMover && (
+      {!podeMover ? (
         <p className="mb-4 flex items-center gap-2 text-sm text-slate-500">
           <Info aria-hidden className="size-4" />
           O status é atualizado pela equipe de atendimento.
         </p>
+      ) : (
+        !gerente && (
+          <p className="mb-4 flex items-center gap-2 text-sm text-slate-500">
+            <Info aria-hidden className="size-4" />
+            Em Atendimento e Concluído mostram os seus atendimentos. A coluna Aberto é a fila de todos.
+          </p>
+        )
       )}
 
       {carregando ? (
@@ -185,6 +238,7 @@ export function KanbanPage() {
                 total={colunas[status].data?.paginacao.total ?? 0}
                 podeMover={podeMover}
                 pendentes={pendentes}
+                carga={podeMover && status === 'EM_ATENDIMENTO' ? minhaCarga : undefined}
                 destaque={arrastando ? arrastando.destinoPermitido === status : false}
                 bloqueada={arrastando ? arrastando.destinoPermitido !== status && arrastando.solicitacao.status !== status : false}
               />
@@ -203,11 +257,13 @@ interface ColunaProps {
   total: number
   podeMover: boolean
   pendentes: Map<number, Status>
+  /** Atendimentos simultâneos da pessoa logada (só na coluna Em Atendimento). */
+  carga?: number
   destaque: boolean
   bloqueada: boolean
 }
 
-function Coluna({ status, itens, total, podeMover, pendentes, destaque, bloqueada }: ColunaProps) {
+function Coluna({ status, itens, total, podeMover, pendentes, carga, destaque, bloqueada }: ColunaProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
@@ -226,8 +282,22 @@ function Coluna({ status, itens, total, podeMover, pendentes, destaque, bloquead
       <header className="mb-3 flex items-center gap-2 px-1">
         <span aria-hidden className={cn('size-2 rounded-full', estiloColuna[status].ponto)} />
         <h2 className="text-sm font-semibold text-slate-700">{ROTULO_STATUS[status]}</h2>
-        <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500">{total}</span>
+        <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-slate-500">{total}</span>
       </header>
+      {carga !== undefined && (
+        <p
+          title={`Cada pessoa pode ter até ${LIMITE_EM_ATENDIMENTO} solicitações em atendimento ao mesmo tempo`}
+          className={cn(
+            'mb-3 flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-medium',
+            carga >= LIMITE_EM_ATENDIMENTO ? 'bg-amber-100 text-amber-800' : 'bg-surface text-slate-500',
+          )}
+        >
+          <span>{carga >= LIMITE_EM_ATENDIMENTO ? 'Você atingiu o limite' : 'Seus atendimentos'}</span>
+          <span className="tabular-nums">
+            {carga}/{LIMITE_EM_ATENDIMENTO}
+          </span>
+        </p>
+      )}
 
       <ul className="flex min-h-24 flex-1 flex-col gap-2">
         {itens.map((s) => (
@@ -279,7 +349,7 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
     <article
       onClick={() => !flutuando && navigate(`/solicitacoes/${s.id}`)}
       className={cn(
-        'group cursor-pointer rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition hover:border-indigo-300',
+        'group cursor-pointer rounded-lg border border-slate-200 bg-surface p-3 shadow-sm transition hover:border-indigo-300',
         arrastavel && 'cursor-grab active:cursor-grabbing',
         pendente && 'animate-pulse',
         flutuando && 'rotate-2 cursor-grabbing shadow-lg ring-2 ring-indigo-300',
@@ -300,11 +370,19 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
         <CategoriaBadge nome={s.categoria.nome} />
       </div>
       <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500">
-        <span className="flex min-w-0 items-center gap-1.5">
+        <span className="flex min-w-0 items-center gap-1.5" title={`Solicitante: ${s.solicitante.nome}`}>
           <Avatar nome={s.solicitante.nome} cor={s.solicitante.corAvatar} tamanho="sm" />
           <span className="truncate">{s.solicitante.nome}</span>
         </span>
-        <span className="shrink-0">{formatarData(s.criadoEm)}</span>
+        <span className="flex shrink-0 items-center gap-2">
+          {formatarData(s.criadoEm)}
+          {s.responsavel && (
+            <span title={`Atendido por ${s.responsavel.nome}`} className="flex items-center gap-1 border-l border-slate-200 pl-2">
+              <UserCheck aria-hidden className="size-3 text-slate-400" />
+              <Avatar nome={s.responsavel.nome} cor={s.responsavel.corAvatar} tamanho="sm" />
+            </span>
+          )}
+        </span>
       </div>
     </article>
   )

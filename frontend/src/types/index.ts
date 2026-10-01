@@ -47,6 +47,8 @@ export interface SolicitacaoResumo {
   criadoEm: string
   atualizadoEm: string
   solicitante: PessoaResumo
+  /** Quem iniciou o atendimento (null enquanto Aberto). */
+  responsavel: PessoaResumo | null
 }
 
 export interface HistoricoStatus {
@@ -80,6 +82,7 @@ export interface FiltrosSolicitacao {
   dataInicio?: string
   dataFim?: string
   categoriaId?: number
+  responsavelId?: number
   status?: Status
   q?: string
   pagina?: number
@@ -97,6 +100,24 @@ export interface ResumoDashboard {
   emAtendimento: number
   concluidas: number
 }
+
+export interface Notificacao {
+  id: number
+  tipo: 'STATUS_ALTERADO' | 'NOVO_COMENTARIO'
+  mensagem: string
+  lida: boolean
+  criadoEm: string
+  solicitacaoId: number
+  autor: PessoaResumo
+}
+
+export interface ListaNotificacoes {
+  itens: Notificacao[]
+  naoLidas: number
+}
+
+/** Limite de solicitações em atendimento simultâneo por pessoa (espelha o backend). */
+export const LIMITE_EM_ATENDIMENTO = 3
 
 export interface LoginResposta {
   token: string

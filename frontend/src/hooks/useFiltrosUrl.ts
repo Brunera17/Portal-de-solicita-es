@@ -1,10 +1,9 @@
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router'
-import { CATEGORIAS, STATUS, type Categoria, type FiltrosSolicitacao, type Status } from '@/types'
+import { STATUS, type FiltrosSolicitacao, type Status } from '@/types'
 
 const POR_PAGINA = 10
 
-const ehCategoria = (v: string | null): v is Categoria => CATEGORIAS.includes(v as Categoria)
 const ehStatus = (v: string | null): v is Status => STATUS.includes(v as Status)
 const ehData = (v: string | null): v is string => !!v && /^\d{4}-\d{2}-\d{2}$/.test(v)
 
@@ -14,14 +13,14 @@ export function useFiltrosUrl() {
 
   const filtros = useMemo<FiltrosSolicitacao>(() => {
     const pagina = Number(params.get('pagina'))
-    const categoria = params.get('categoria')
+    const categoriaId = Number(params.get('categoriaId'))
     const status = params.get('status')
     const dataInicio = params.get('dataInicio')
     const dataFim = params.get('dataFim')
 
     return {
       q: params.get('q')?.trim() || undefined,
-      categoria: ehCategoria(categoria) ? categoria : undefined,
+      categoriaId: Number.isInteger(categoriaId) && categoriaId > 0 ? categoriaId : undefined,
       status: ehStatus(status) ? status : undefined,
       dataInicio: ehData(dataInicio) ? dataInicio : undefined,
       dataFim: ehData(dataFim) ? dataFim : undefined,
@@ -51,7 +50,7 @@ export function useFiltrosUrl() {
 
   const limpar = useCallback(() => setParams({}, { replace: true }), [setParams])
 
-  const temFiltros = !!(filtros.q || filtros.categoria || filtros.status || filtros.dataInicio || filtros.dataFim)
+  const temFiltros = !!(filtros.q || filtros.categoriaId || filtros.status || filtros.dataInicio || filtros.dataFim)
 
   return { filtros, atualizar, limpar, temFiltros }
 }

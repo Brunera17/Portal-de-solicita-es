@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router'
 import { ChevronDown, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import { mensagemDeErro } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'
+import { useCategorias } from '@/hooks/useAdmin'
 import { useFiltrosUrl } from '@/hooks/useFiltrosUrl'
 import { useListaSolicitacoes } from '@/hooks/useSolicitacoes'
-import { ROTULO_CATEGORIA, ROTULO_STATUS } from '@/lib/dominio'
+import { ehEquipe, ROTULO_STATUS } from '@/lib/dominio'
 import { cn } from '@/lib/cn'
 import { formatarCodigo, formatarData } from '@/lib/format'
-import { CATEGORIAS, STATUS, type SolicitacaoResumo } from '@/types'
+import { STATUS, type SolicitacaoResumo } from '@/types'
 import { BotaoLink, Button } from '@/components/ui/Button'
 import { CategoriaBadge, StatusBadge } from '@/components/ui/Badges'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
@@ -25,6 +26,7 @@ export function SolicitacoesPage() {
   const usuario = useUsuarioLogado()
   const { filtros, atualizar, limpar, temFiltros } = useFiltrosUrl()
   const lista = useListaSolicitacoes(filtros)
+  const categorias = useCategorias()
 
   // A busca por texto só vai para a URL (e dispara a consulta) após uma pausa na digitação
   const [busca, setBusca] = useState(filtros.q ?? '')
@@ -45,10 +47,10 @@ export function SolicitacoesPage() {
 
   // No celular, os filtros além da busca ficam recolhidos atrás de um botão
   const [filtrosAbertos, setFiltrosAbertos] = useState(false)
-  const qtdFiltrosExtras = [filtros.status, filtros.categoria, filtros.dataInicio, filtros.dataFim].filter(Boolean).length
+  const qtdFiltrosExtras = [filtros.status, filtros.categoriaId, filtros.dataInicio, filtros.dataFim].filter(Boolean).length
 
   const descricao =
-    usuario.perfil === 'ATENDENTE'
+    ehEquipe(usuario.perfil)
       ? 'Todas as solicitações registradas pelos colaboradores.'
       : 'Acompanhe as solicitações que você registrou.'
 
@@ -116,13 +118,14 @@ export function SolicitacoesPage() {
             <Campo id="filtro-categoria" rotulo="Categoria" className="lg:col-span-2">
               <Select
                 id="filtro-categoria"
-                value={filtros.categoria ?? ''}
-                onChange={(e) => atualizar({ categoria: e.target.value })}
+                value={filtros.categoriaId ?? ''}
+                onChange={(e) => atualizar({ categoriaId: e.target.value })}
               >
                 <option value="">Todas</option>
-                {CATEGORIAS.map((c) => (
-                  <option key={c} value={c}>
-                    {ROTULO_CATEGORIA[c]}
+                {categorias.data?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                    {!c.ativa && ' (inativa)'}
                   </option>
                 ))}
               </Select>
@@ -231,7 +234,7 @@ function TabelaSolicitacoes({ itens }: { itens: SolicitacaoResumo[] }) {
                   {s.titulo}
                 </Link>
               </td>
-              <td className="px-4 py-3"><CategoriaBadge categoria={s.categoria} /></td>
+              <td className="px-4 py-3"><CategoriaBadge nome={s.categoria.nome} /></td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-600">{s.solicitante.nome}</td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatarData(s.criadoEm)}</td>
               <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
@@ -256,7 +259,7 @@ function ListaCartoes({ itens }: { itens: SolicitacaoResumo[] }) {
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
               <span className="font-mono">{formatarCodigo(s.id)}</span>
-              <CategoriaBadge categoria={s.categoria} />
+              <CategoriaBadge nome={s.categoria.nome} />
               <span>{s.solicitante.nome}</span>
               <span>{formatarData(s.criadoEm)}</span>
             </div>

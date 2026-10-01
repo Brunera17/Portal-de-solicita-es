@@ -7,6 +7,8 @@ export interface AuthContextValue {
   carregando: boolean
   login: (usuario: string, senha: string) => Promise<void>
   logout: () => Promise<void>
+  /** Atualiza os dados do usuário logado após editar o próprio perfil. */
+  atualizarUsuario: (usuario: Usuario) => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

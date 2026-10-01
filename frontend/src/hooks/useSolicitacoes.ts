@@ -1,11 +1,12 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { dashboardApi, solicitacoesApi } from '@/api/endpoints'
+import { comentariosApi, dashboardApi, solicitacoesApi } from '@/api/endpoints'
 import type { FiltrosSolicitacao, SolicitacaoInput, Status } from '@/types'
 
 export const chaves = {
   todas: ['solicitacoes'] as const,
   lista: (filtros: FiltrosSolicitacao) => ['solicitacoes', 'lista', filtros] as const,
   detalhe: (id: number) => ['solicitacoes', 'detalhe', id] as const,
+  comentarios: (id: number) => ['solicitacoes', 'comentarios', id] as const,
   dashboard: ['dashboard'] as const,
 }
 
@@ -67,6 +68,30 @@ export function useExcluirSolicitacao() {
         queryClient.invalidateQueries({ queryKey: chaves.dashboard }),
       ])
     },
+  })
+}
+
+export function useComentarios(solicitacaoId: number) {
+  return useQuery({
+    queryKey: chaves.comentarios(solicitacaoId),
+    queryFn: () => comentariosApi.listar(solicitacaoId),
+  })
+}
+
+export function useCriarComentario(solicitacaoId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (dados: { texto: string; interno: boolean }) => comentariosApi.criar(solicitacaoId, dados),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: chaves.comentarios(solicitacaoId) }),
+  })
+}
+
+/** Variante de useAlterarStatus que recebe o id na chamada (usada no Kanban). */
+export function useMoverSolicitacao() {
+  const invalidar = useInvalidarTudo()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: Status }) => solicitacoesApi.alterarStatus(id, status),
+    onSettled: invalidar,
   })
 }
 

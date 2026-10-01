@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { BusinessRuleError, NotFoundError, UnauthorizedError } from '../../errors/AppError';
+import { AppError, BusinessRuleError, NotFoundError } from '../../errors/AppError';
 import type { UsuarioAutenticado } from '../../types/express';
 import { usuariosRepository } from './usuarios.repository';
 import type {
@@ -50,8 +50,11 @@ export const usuariosService = {
 
   async trocarSenha(usuarioId: number, { senhaAtual, novaSenha }: TrocarSenhaInput) {
     const atual = await usuariosRepository.buscarSenhaHash(usuarioId);
+    // 400 (e não 401): o usuário está autenticado; o dado informado é que está errado
     if (!atual || !(await bcrypt.compare(senhaAtual, atual.senhaHash))) {
-      throw new UnauthorizedError('Senha atual incorreta');
+      throw new AppError(400, 'VALIDATION_ERROR', 'Senha atual incorreta', [
+        { campo: 'senhaAtual', mensagem: 'Senha atual incorreta' },
+      ]);
     }
     await usuariosRepository.atualizar(usuarioId, { senhaHash: await bcrypt.hash(novaSenha, CUSTO_BCRYPT) });
   },

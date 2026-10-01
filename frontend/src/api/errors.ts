@@ -20,10 +20,11 @@ export function mensagemDeErro(erro: unknown, padrao = 'Ocorreu um erro inespera
   return padrao
 }
 
-/** Erros de validação por campo devolvidos pela API (HTTP 400). */
+/** Erros por campo devolvidos pela API: validação (400) ou valor duplicado (409). */
 export function errosDeCampo(erro: unknown): ErroCampo[] {
-  if (isAxiosError<CorpoErroApi>(erro) && erro.response?.status === 400) {
-    const details = erro.response.data?.error?.details
+  const status = isAxiosError(erro) ? erro.response?.status : undefined
+  if (isAxiosError<CorpoErroApi>(erro) && (status === 400 || status === 409)) {
+    const details = erro.response?.data?.error?.details
     if (Array.isArray(details)) {
       return details as ErroCampo[]
     }

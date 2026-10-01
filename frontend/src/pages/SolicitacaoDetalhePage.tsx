@@ -5,11 +5,13 @@ import { ArrowLeft, ArrowRight, Pencil, Trash2 } from 'lucide-react'
 import { mensagemDeErro, statusHttp } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'
 import { useAlterarStatus, useExcluirSolicitacao, useSolicitacao } from '@/hooks/useSolicitacoes'
-import { PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
+import { ehEquipe, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
 import { formatarCodigo, formatarDataHora } from '@/lib/format'
 import type { HistoricoStatus, SolicitacaoDetalhe } from '@/types'
 import { BotaoLink, Button } from '@/components/ui/Button'
 import { CategoriaBadge, StatusBadge } from '@/components/ui/Badges'
+import { Comentarios } from '@/components/solicitacoes/Comentarios'
+import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
 import { DialogoConfirmacao } from '@/components/ui/DialogoConfirmacao'
 import { Carregando, ErroCarregamento } from '@/components/ui/Estados'
@@ -45,7 +47,7 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
 
   const ehDono = s.solicitante.id === usuario.id
   const podeAlterar = ehDono && s.status === 'ABERTO'
-  const proximaAcao = usuario.perfil === 'ATENDENTE' ? PROXIMA_ACAO[s.status] : null
+  const proximaAcao = ehEquipe(usuario.perfil) ? PROXIMA_ACAO[s.status] : null
 
   const confirmarExclusao = async () => {
     try {
@@ -79,7 +81,7 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-sm text-slate-500">{formatarCodigo(s.id)}</span>
             <StatusBadge status={s.status} />
-            <CategoriaBadge categoria={s.categoria} />
+            <CategoriaBadge nome={s.categoria.nome} />
           </div>
           <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-900">{s.titulo}</h1>
         </div>
@@ -109,15 +111,24 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="p-6 lg:col-span-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Descrição</h2>
-          <p className="mt-3 whitespace-pre-wrap break-words text-slate-700">{s.descricao}</p>
-        </Card>
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Descrição</h2>
+            <p className="mt-3 whitespace-pre-wrap break-words text-slate-700">{s.descricao}</p>
+          </Card>
+          <Comentarios solicitacaoId={s.id} />
+        </div>
 
         <div className="space-y-6">
           <Card className="p-6">
             <dl className="space-y-4 text-sm">
-              <Info rotulo="Solicitante" valor={s.solicitante.nome} />
+              <div>
+                <dt className="text-slate-500">Solicitante</dt>
+                <dd className="mt-1 flex items-center gap-2 font-medium text-slate-800">
+                  <Avatar nome={s.solicitante.nome} cor={s.solicitante.corAvatar} tamanho="sm" />
+                  {s.solicitante.nome}
+                </dd>
+              </div>
               <Info rotulo="Aberta em" valor={formatarDataHora(s.criadoEm)} />
               <Info rotulo="Última atualização" valor={formatarDataHora(s.atualizadoEm)} />
             </dl>

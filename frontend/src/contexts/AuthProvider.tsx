@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ usuario, carregando, login, logout }),
+    () => ({ usuario, carregando, login, logout, atualizarUsuario: setUsuario }),
     [usuario, carregando, login, logout],
   )
 

@@ -19,6 +19,7 @@ type FormLogin = z.infer<typeof schema>
 // Painel de credenciais de teste; desligue com VITE_EXIBIR_USUARIOS_DEMO=false
 const exibirUsuariosDemo = import.meta.env.VITE_EXIBIR_USUARIOS_DEMO !== 'false'
 const usuariosDemo = [
+  { usuario: 'gerente', senha: 'gerente123', perfil: 'Gerente' },
   { usuario: 'atendente', senha: 'atendente123', perfil: 'Atendente' },
   { usuario: 'maria', senha: 'maria123', perfil: 'Solicitante' },
   { usuario: 'joao', senha: 'joao123', perfil: 'Solicitante' },

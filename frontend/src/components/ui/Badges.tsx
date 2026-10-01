@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn'
-import { ROTULO_CATEGORIA, ROTULO_STATUS } from '@/lib/dominio'
-import type { Categoria, Status } from '@/types'
+import { ROTULO_STATUS } from '@/lib/dominio'
+import type { Status } from '@/types'
 
 const coresStatus: Record<Status, string> = {
   ABERTO: 'bg-sky-50 text-sky-700 ring-sky-600/20',
@@ -28,10 +28,10 @@ export function StatusBadge({ status }: { status: Status }) {
   )
 }
 
-export function CategoriaBadge({ categoria }: { categoria: Categoria }) {
+export function CategoriaBadge({ nome }: { nome: string }) {
   return (
     <span className="inline-flex whitespace-nowrap rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-      {ROTULO_CATEGORIA[categoria]}
+      {nome}
     </span>
   )
 }

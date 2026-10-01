@@ -260,7 +260,9 @@ describe('Meu perfil', () => {
       .put('/api/perfil/senha')
       .set('Authorization', tokenJoao)
       .send({ senhaAtual: 'errada', novaSenha: 'joao456' });
-    expect(errada.status).toBe(401);
+    // 400 com o campo, e não 401 — que o frontend interpretaria como sessão expirada
+    expect(errada.status).toBe(400);
+    expect(errada.body.error.details).toEqual([{ campo: 'senhaAtual', mensagem: 'Senha atual incorreta' }]);
 
     const certa = await request(app)
       .put('/api/perfil/senha')

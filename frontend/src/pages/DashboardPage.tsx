@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, CircleDot, Clock, Layers, Plus, type LucideIc
 import { mensagemDeErro } from '@/api/errors'
 import { useUsuarioLogado } from '@/hooks/useAuth'
 import { useListaSolicitacoes, useResumoDashboard } from '@/hooks/useSolicitacoes'
+import { ehEquipe } from '@/lib/dominio'
 import { formatarCodigo, formatarData } from '@/lib/format'
 import { BotaoLink } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/Badges'
@@ -34,7 +35,7 @@ export function DashboardPage() {
   const recentes = useListaSolicitacoes({ pagina: 1, porPagina: 5 })
 
   const primeiroNome = usuario.nome.split(' ')[0]
-  const escopo = usuario.perfil === 'ATENDENTE' ? 'todas as solicitações' : 'suas solicitações'
+  const escopo = ehEquipe(usuario.perfil) ? 'todas as solicitações' : 'suas solicitações'
 
   return (
     <>

@@ -5,11 +5,11 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { ArrowLeft, Lock } from 'lucide-react'
 import { errosDeCampo, mensagemDeErro } from '@/api/errors'
+import { useCategorias } from '@/hooks/useAdmin'
 import { useUsuarioLogado } from '@/hooks/useAuth'
 import { useAtualizarSolicitacao, useCriarSolicitacao, useSolicitacao } from '@/hooks/useSolicitacoes'
-import { ROTULO_CATEGORIA } from '@/lib/dominio'
 import { formatarCodigo } from '@/lib/format'
-import { CATEGORIAS, type SolicitacaoInput } from '@/types'
+import type { Categoria, CategoriaResumo, SolicitacaoInput } from '@/types'
 import { BotaoLink, Button } from '@/components/ui/Button'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Campo, Input, Select, Textarea } from '@/components/ui/Campo'
@@ -28,7 +28,7 @@ const schema = z.object({
     .trim()
     .min(10, 'A descrição deve ter pelo menos 10 caracteres')
     .max(5000, 'A descrição deve ter no máximo 5000 caracteres'),
-  categoria: z.enum(CATEGORIAS, { error: 'Selecione uma categoria' }),
+  categoriaId: z.number({ error: 'Selecione uma categoria' }).int().positive('Selecione uma categoria'),
 })
 
 export function SolicitacaoFormPage() {
@@ -81,7 +81,8 @@ function EditarSolicitacao({ id }: { id: number }) {
       <CabecalhoPagina titulo={`Editar solicitação ${formatarCodigo(id)}`} />
       {podeEditar ? (
         <FormularioSolicitacao
-          valoresIniciais={{ titulo: s.titulo, descricao: s.descricao, categoria: s.categoria }}
+          valoresIniciais={{ titulo: s.titulo, descricao: s.descricao, categoriaId: s.categoria.id }}
+          categoriaAtual={s.categoria}
           rotuloEnviar="Salvar alterações"
           onEnviar={async (dados) => {
             await atualizar.mutateAsync(dados)
@@ -108,12 +109,41 @@ function EditarSolicitacao({ id }: { id: number }) {
 
 interface FormularioProps {
   valoresIniciais?: SolicitacaoInput
+  /** Na edição: mantida entre as opções mesmo se tiver sido desativada. */
+  categoriaAtual?: CategoriaResumo
   rotuloEnviar: string
   onEnviar: (dados: SolicitacaoInput) => Promise<void>
   onCancelar: () => void
 }
 
-function FormularioSolicitacao({ valoresIniciais, rotuloEnviar, onEnviar, onCancelar }: FormularioProps) {
+/** Carrega as categorias antes de montar o formulário, para o <select> já nascer com a opção certa. */
+function FormularioSolicitacao({ categoriaAtual, ...props }: FormularioProps) {
+  const categorias = useCategorias()
+
+  if (categorias.isPending) return <Carregando />
+  if (categorias.isError) {
+    return (
+      <Card>
+        <ErroCarregamento mensagem={mensagemDeErro(categorias.error)} onTentarNovamente={() => categorias.refetch()} />
+      </Card>
+    )
+  }
+
+  const opcoes = categorias.data.filter((c) => c.ativa || c.id === categoriaAtual?.id)
+  if (categoriaAtual && !opcoes.some((c) => c.id === categoriaAtual.id)) {
+    opcoes.unshift({ ...categoriaAtual, ativa: false })
+  }
+
+  return <CamposSolicitacao {...props} opcoes={opcoes} />
+}
+
+function CamposSolicitacao({
+  valoresIniciais,
+  opcoes,
+  rotuloEnviar,
+  onEnviar,
+  onCancelar,
+}: Omit<FormularioProps, 'categoriaAtual'> & { opcoes: Categoria[] }) {
   const {
     register,
     handleSubmit,
@@ -153,14 +183,20 @@ function FormularioSolicitacao({ valoresIniciais, rotuloEnviar, onEnviar, onCanc
           />
         </Campo>
 
-        <Campo id="categoria" rotulo="Categoria" erro={errors.categoria?.message} className="sm:max-w-xs">
-          <Select id="categoria" erro={errors.categoria?.message} defaultValue="" {...register('categoria')}>
+        <Campo id="categoriaId" rotulo="Categoria" erro={errors.categoriaId?.message} className="sm:max-w-xs">
+          <Select
+            id="categoriaId"
+            erro={errors.categoriaId?.message}
+            defaultValue=""
+            {...register('categoriaId', { valueAsNumber: true })}
+          >
             <option value="" disabled>
               Selecione...
             </option>
-            {CATEGORIAS.map((c) => (
-              <option key={c} value={c}>
-                {ROTULO_CATEGORIA[c]}
+            {opcoes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+                {!c.ativa && ' (desativada)'}
               </option>
             ))}
           </Select>

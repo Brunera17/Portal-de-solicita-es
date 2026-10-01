@@ -25,29 +25,29 @@ export const PROXIMA_ACAO: Record<Status, { status: Status; rotulo: string } | n
 
 /**
  * Classes de fundo/texto de cada cor de avatar (listadas por extenso para o Tailwind gerá-las).
- * As chaves são os valores gravados no banco; com a paleta do projeto, indigo = framboesa,
- * sky = ameixa, emerald = oliva e slate = areia (ver ROTULO_COR).
+ * Avatares usam a paleta padrão do Tailwind, não a do projeto: são escolha pessoal e precisam
+ * de matizes bem distintos entre si (a paleta do projeto deixaria opções quase iguais).
  */
 export const CLASSES_AVATAR: Record<CorAvatar, string> = {
-  indigo: 'bg-primaria-100 text-primaria-700',
-  sky: 'bg-ameixa-100 text-ameixa-700',
+  indigo: 'bg-indigo-100 text-indigo-700',
+  sky: 'bg-sky-100 text-sky-700',
   teal: 'bg-teal-100 text-teal-700',
-  emerald: 'bg-oliva-100 text-oliva-700',
+  emerald: 'bg-emerald-100 text-emerald-700',
   amber: 'bg-amber-100 text-amber-800',
   orange: 'bg-orange-100 text-orange-700',
   rose: 'bg-rose-100 text-rose-700',
   violet: 'bg-violet-100 text-violet-700',
-  slate: 'bg-neutra-200 text-neutra-700',
+  slate: 'bg-slate-200 text-slate-700',
 }
 
 export const ROTULO_COR: Record<CorAvatar, string> = {
-  indigo: 'Framboesa',
-  sky: 'Ameixa',
+  indigo: 'Índigo',
+  sky: 'Céu',
   teal: 'Turquesa',
-  emerald: 'Oliva',
+  emerald: 'Esmeralda',
   amber: 'Âmbar',
   orange: 'Laranja',
   rose: 'Rosa',
   violet: 'Violeta',
-  slate: 'Areia',
+  slate: 'Grafite',
 }

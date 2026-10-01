@@ -19,7 +19,7 @@ const linkAdmin = { to: '/admin', rotulo: 'Administração', icone: Settings, en
 
 function Marca() {
   return (
-    <Link to="/" className="flex items-center gap-2.5 font-semibold text-slate-900">
+    <Link to="/" className="flex items-center gap-2.5 font-semibold text-neutra-900">
       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-marca text-white">
         <ClipboardList aria-hidden className="size-4" />
       </span>
@@ -67,7 +67,7 @@ function ConteudoLateral({ comSino }: { comSino: boolean }) {
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                isActive ? 'bg-primaria-50 text-primaria-700' : 'text-neutra-600 hover:bg-neutra-100 hover:text-neutra-900',
               )
             }
           >
@@ -77,14 +77,14 @@ function ConteudoLateral({ comSino }: { comSino: boolean }) {
         ))}
       </nav>
 
-      <div className="mt-auto space-y-3 border-t border-slate-200 p-3">
+      <div className="mt-auto space-y-3 border-t border-neutra-200 p-3">
         <SeletorTema />
         <div className="flex items-center gap-1">
-          <Link to="/perfil" title="Meu perfil" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 hover:bg-slate-100">
+          <Link to="/perfil" title="Meu perfil" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-2 hover:bg-neutra-100">
             <Avatar nome={usuario.nome} cor={usuario.corAvatar} />
             <span className="min-w-0 leading-tight">
-              <span className="block truncate text-sm font-medium text-slate-800">{usuario.nome}</span>
-              <span className="block text-xs text-slate-500">{ROTULO_PERFIL[usuario.perfil]}</span>
+              <span className="block truncate text-sm font-medium text-neutra-800">{usuario.nome}</span>
+              <span className="block text-xs text-neutra-500">{ROTULO_PERFIL[usuario.perfil]}</span>
             </span>
           </Link>
           <button
@@ -92,7 +92,7 @@ function ConteudoLateral({ comSino }: { comSino: boolean }) {
             onClick={sair}
             aria-label="Sair"
             title="Sair"
-            className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-red-600"
+            className="grid size-9 shrink-0 place-items-center rounded-lg text-neutra-500 hover:bg-neutra-100 hover:text-red-600"
           >
             <LogOut aria-hidden className="size-4" />
           </button>
@@ -124,22 +124,22 @@ export function AppLayout() {
   return (
     <div className="min-h-dvh">
       {/* Desktop: barra lateral fixa */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-surface lg:block">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-neutra-200 bg-surface lg:block">
         <ConteudoLateral comSino />
       </aside>
 
       {/* Celular/tablet: barra superior + gaveta */}
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-surface px-4 lg:hidden">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-neutra-200 bg-surface px-4 lg:hidden">
         <button
           type="button"
           onClick={() => setGavetaAberta(true)}
           aria-label="Abrir menu"
           aria-expanded={gavetaAberta}
-          className="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100"
+          className="grid size-9 place-items-center rounded-lg text-neutra-600 hover:bg-neutra-100"
         >
           <Menu aria-hidden className="size-5" />
         </button>
-        <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
+        <Link to="/" className="flex items-center gap-2 font-semibold text-neutra-900">
           <span className="grid size-8 place-items-center rounded-lg bg-marca text-white">
             <ClipboardList aria-hidden className="size-4" />
           </span>
@@ -161,7 +161,7 @@ export function AppLayout() {
               type="button"
               onClick={() => setGavetaAberta(false)}
               aria-label="Fechar menu"
-              className="absolute right-3 top-3 grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
+              className="absolute right-3 top-3 grid size-9 place-items-center rounded-lg text-neutra-500 hover:bg-neutra-100"
             >
               <X aria-hidden className="size-5" />
             </button>

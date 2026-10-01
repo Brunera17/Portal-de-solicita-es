@@ -3,15 +3,15 @@ import { ROTULO_STATUS } from '@/lib/dominio'
 import type { Status } from '@/types'
 
 const coresStatus: Record<Status, string> = {
-  ABERTO: 'bg-sky-50 text-sky-700 ring-sky-600/20',
+  ABERTO: 'bg-ameixa-50 text-ameixa-700 ring-ameixa-600/20',
   EM_ATENDIMENTO: 'bg-amber-50 text-amber-800 ring-amber-600/20',
-  CONCLUIDO: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+  CONCLUIDO: 'bg-oliva-50 text-oliva-700 ring-oliva-600/20',
 }
 
 const pontoStatus: Record<Status, string> = {
-  ABERTO: 'bg-sky-500',
+  ABERTO: 'bg-ameixa-500',
   EM_ATENDIMENTO: 'bg-amber-500',
-  CONCLUIDO: 'bg-emerald-500',
+  CONCLUIDO: 'bg-oliva-500',
 }
 
 export function StatusBadge({ status }: { status: Status }) {
@@ -43,7 +43,7 @@ export function NovaBadge() {
 
 export function CategoriaBadge({ nome }: { nome: string }) {
   return (
-    <span className="inline-flex whitespace-nowrap rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+    <span className="inline-flex whitespace-nowrap rounded-md bg-neutra-100 px-2 py-0.5 text-xs font-medium text-neutra-600">
       {nome}
     </span>
   )

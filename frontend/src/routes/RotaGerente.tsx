@@ -11,9 +11,9 @@ export function RotaGerente() {
   if (!ehGerente(usuario.perfil)) {
     return (
       <div className="flex flex-col items-center py-24 text-center">
-        <ShieldAlert aria-hidden className="size-10 text-slate-300" />
-        <h1 className="mt-3 text-lg font-semibold text-slate-900">Acesso restrito</h1>
-        <p className="mt-1 text-sm text-slate-500">Esta área é exclusiva para gerentes.</p>
+        <ShieldAlert aria-hidden className="size-10 text-neutra-300" />
+        <h1 className="mt-3 text-lg font-semibold text-neutra-900">Acesso restrito</h1>
+        <p className="mt-1 text-sm text-neutra-500">Esta área é exclusiva para gerentes.</p>
         <BotaoLink to="/" variante="secundario" className="mt-5">
           Voltar ao início
         </BotaoLink>

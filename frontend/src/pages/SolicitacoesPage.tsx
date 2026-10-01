@@ -75,7 +75,7 @@ export function SolicitacoesPage() {
         >
           <Campo id="filtro-busca" rotulo="Buscar pelo título" className="sm:col-span-2 lg:col-span-4">
             <div className="relative">
-              <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutra-400" />
               <Input
                 id="filtro-busca"
                 type="search"
@@ -183,7 +183,7 @@ export function SolicitacoesPage() {
         ) : (
           <div className="relative">
             {lista.isFetching && (
-              <div className="absolute right-3 top-3 z-10 text-indigo-500" aria-label="Atualizando">
+              <div className="absolute right-3 top-3 z-10 text-primaria-500" aria-label="Atualizando">
                 <Spinner className="size-4" />
               </div>
             )}
@@ -207,7 +207,7 @@ function TabelaSolicitacoes({ itens }: { itens: SolicitacaoResumo[] }) {
   return (
     <div className="hidden overflow-x-auto lg:block">
       <table className="w-full text-left text-sm">
-        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium uppercase tracking-wide text-slate-500">
+        <thead className="border-b border-neutra-200 bg-neutra-50 text-xs font-medium uppercase tracking-wide text-neutra-500">
           <tr>
             <th scope="col" className="px-4 py-3">Código</th>
             <th scope="col" className="px-4 py-3">Título</th>
@@ -217,29 +217,29 @@ function TabelaSolicitacoes({ itens }: { itens: SolicitacaoResumo[] }) {
             <th scope="col" className="px-4 py-3">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-neutra-100">
           {itens.map((s) => (
             <tr
               key={s.id}
               onClick={() => navigate(`/solicitacoes/${s.id}`)}
-              className="cursor-pointer transition-colors hover:bg-slate-50"
+              className="cursor-pointer transition-colors hover:bg-neutra-50"
             >
-              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-slate-500">{formatarCodigo(s.id)}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-neutra-500">{formatarCodigo(s.id)}</td>
               <td className="max-w-xs px-4 py-3">
                 <span className="flex items-center gap-2">
                   {s.nova && <NovaBadge />}
                   <Link
                     to={`/solicitacoes/${s.id}`}
                     onClick={(e) => e.stopPropagation()}
-                    className={cn('block truncate hover:text-indigo-600', s.nova ? 'font-semibold text-slate-900' : 'font-medium text-slate-800')}
+                    className={cn('block truncate hover:text-primaria-600', s.nova ? 'font-semibold text-neutra-900' : 'font-medium text-neutra-800')}
                   >
                     {s.titulo}
                   </Link>
                 </span>
               </td>
               <td className="px-4 py-3"><CategoriaBadge nome={s.categoria.nome} /></td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">{s.solicitante.nome}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatarData(s.criadoEm)}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-neutra-600">{s.solicitante.nome}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-neutra-600">{formatarData(s.criadoEm)}</td>
               <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
             </tr>
           ))}
@@ -252,18 +252,18 @@ function TabelaSolicitacoes({ itens }: { itens: SolicitacaoResumo[] }) {
 /** Cartões empilhados para telas pequenas e médias. */
 function ListaCartoes({ itens }: { itens: SolicitacaoResumo[] }) {
   return (
-    <ul className="divide-y divide-slate-100 lg:hidden">
+    <ul className="divide-y divide-neutra-100 lg:hidden">
       {itens.map((s) => (
         <li key={s.id}>
-          <Link to={`/solicitacoes/${s.id}`} className="block space-y-2 px-4 py-4 hover:bg-slate-50">
+          <Link to={`/solicitacoes/${s.id}`} className="block space-y-2 px-4 py-4 hover:bg-neutra-50">
             <div className="flex items-start justify-between gap-3">
-              <span className="flex flex-wrap items-center gap-2 font-medium text-slate-800">
+              <span className="flex flex-wrap items-center gap-2 font-medium text-neutra-800">
                 {s.nova && <NovaBadge />}
                 {s.titulo}
               </span>
               <StatusBadge status={s.status} />
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutra-500">
               <span className="font-mono">{formatarCodigo(s.id)}</span>
               <CategoriaBadge nome={s.categoria.nome} />
               <span>{s.solicitante.nome}</span>

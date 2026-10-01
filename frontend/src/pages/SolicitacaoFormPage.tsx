@@ -93,9 +93,9 @@ function EditarSolicitacao({ id }: { id: number }) {
         />
       ) : (
         <Card className="flex flex-col items-center px-6 py-12 text-center">
-          <Lock aria-hidden className="size-10 text-slate-300" />
-          <p className="mt-3 font-medium text-slate-700">Esta solicitação não pode ser editada</p>
-          <p className="mt-1 max-w-sm text-sm text-slate-500">
+          <Lock aria-hidden className="size-10 text-neutra-300" />
+          <p className="mt-3 font-medium text-neutra-700">Esta solicitação não pode ser editada</p>
+          <p className="mt-1 max-w-sm text-sm text-neutra-500">
             Apenas o solicitante pode editar, e somente enquanto o status for "Aberto".
           </p>
           <BotaoLink to={`/solicitacoes/${id}`} variante="secundario" className="mt-5">
@@ -218,7 +218,7 @@ function CamposSolicitacao({
           />
         </Campo>
 
-        <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 border-t border-neutra-200 pt-5 sm:flex-row sm:justify-end">
           <Button variante="secundario" onClick={onCancelar} disabled={isSubmitting}>
             Cancelar
           </Button>
@@ -233,7 +233,7 @@ function CamposSolicitacao({
 
 function Voltar({ para }: { para: string }) {
   return (
-    <Link to={para} className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800">
+    <Link to={para} className="mb-4 inline-flex items-center gap-1 text-sm text-neutra-500 hover:text-neutra-800">
       <ArrowLeft aria-hidden className="size-4" />
       Voltar
     </Link>

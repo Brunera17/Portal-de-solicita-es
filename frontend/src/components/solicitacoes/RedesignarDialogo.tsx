@@ -71,7 +71,7 @@ function Formulario({
     <form onSubmit={enviar} noValidate>
       <div className="space-y-4 px-6 py-5">
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-slate-700">Novo responsável</legend>
+          <legend className="mb-2 text-sm font-medium text-neutra-700">Novo responsável</legend>
           <ul role="radiogroup" className="space-y-2">
             {equipe.data.map((m) => {
               const atual = m.id === atualId
@@ -91,14 +91,14 @@ function Formulario({
                     }}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                      selecionado ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500' : 'border-slate-200 hover:bg-slate-50',
+                      selecionado ? 'border-primaria-500 bg-primaria-50 ring-1 ring-primaria-500' : 'border-neutra-200 hover:bg-neutra-50',
                       indisponivel && 'cursor-not-allowed opacity-50 hover:bg-transparent',
                     )}
                   >
                     <Avatar nome={m.nome} cor={m.corAvatar} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-slate-800">{m.nome}</span>
-                      <span className="block text-xs text-slate-500">
+                      <span className="block truncate text-sm font-medium text-neutra-800">{m.nome}</span>
+                      <span className="block text-xs text-neutra-500">
                         {ROTULO_PERFIL[m.perfil]}
                         {atual && ' · responsável atual'}
                         {!atual && cheio && ' · no limite de atendimentos'}
@@ -108,7 +108,7 @@ function Formulario({
                       title="Solicitações em atendimento agora"
                       className={cn(
                         'rounded-full px-2 py-0.5 text-xs font-medium tabular-nums',
-                        cheio ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600',
+                        cheio ? 'bg-amber-100 text-amber-800' : 'bg-neutra-100 text-neutra-600',
                       )}
                     >
                       {m.emAtendimento}/{LIMITE_EM_ATENDIMENTO}
@@ -121,8 +121,8 @@ function Formulario({
         </fieldset>
 
         <div>
-          <label htmlFor="redesignar-motivo" className="mb-1.5 block text-sm font-medium text-slate-700">
-            Motivo <span className="font-normal text-slate-400">(opcional)</span>
+          <label htmlFor="redesignar-motivo" className="mb-1.5 block text-sm font-medium text-neutra-700">
+            Motivo <span className="font-normal text-neutra-400">(opcional)</span>
           </label>
           <Textarea
             id="redesignar-motivo"
@@ -142,7 +142,7 @@ function Formulario({
         )}
       </div>
 
-      <div className="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+      <div className="flex justify-end gap-2 rounded-b-xl border-t border-neutra-200 bg-neutra-50 px-6 py-4">
         <Button variante="secundario" onClick={onConcluir} disabled={redesignar.isPending}>
           Cancelar
         </Button>

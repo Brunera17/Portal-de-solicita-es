@@ -82,11 +82,11 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-sm text-slate-500">{formatarCodigo(s.id)}</span>
+            <span className="font-mono text-sm text-neutra-500">{formatarCodigo(s.id)}</span>
             <StatusBadge status={s.status} />
             <CategoriaBadge nome={s.categoria.nome} />
           </div>
-          <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight text-slate-900">{s.titulo}</h1>
+          <h1 className="mt-2 break-words text-2xl font-semibold tracking-tight text-neutra-900">{s.titulo}</h1>
         </div>
 
         {(podeAlterar || proximaAcao || podeRedesignar) && (
@@ -122,8 +122,8 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card className="p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Descrição</h2>
-            <p className="mt-3 whitespace-pre-wrap break-words text-slate-700">{s.descricao}</p>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutra-500">Descrição</h2>
+            <p className="mt-3 whitespace-pre-wrap break-words text-neutra-700">{s.descricao}</p>
           </Card>
           <Comentarios solicitacaoId={s.id} />
         </div>
@@ -132,22 +132,22 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
           <Card className="p-6">
             <dl className="space-y-4 text-sm">
               <div>
-                <dt className="text-slate-500">Solicitante</dt>
-                <dd className="mt-1 flex items-center gap-2 font-medium text-slate-800">
+                <dt className="text-neutra-500">Solicitante</dt>
+                <dd className="mt-1 flex items-center gap-2 font-medium text-neutra-800">
                   <Avatar nome={s.solicitante.nome} cor={s.solicitante.corAvatar} tamanho="sm" />
                   {s.solicitante.nome}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Responsável</dt>
-                <dd className="mt-1 flex items-center gap-2 font-medium text-slate-800">
+                <dt className="text-neutra-500">Responsável</dt>
+                <dd className="mt-1 flex items-center gap-2 font-medium text-neutra-800">
                   {s.responsavel ? (
                     <>
                       <Avatar nome={s.responsavel.nome} cor={s.responsavel.corAvatar} tamanho="sm" />
                       {s.responsavel.nome}
                     </>
                   ) : (
-                    <span className="font-normal text-slate-400">Aguardando atendimento</span>
+                    <span className="font-normal text-neutra-400">Aguardando atendimento</span>
                   )}
                 </dd>
               </div>
@@ -157,7 +157,7 @@ function Detalhe({ solicitacao: s }: { solicitacao: SolicitacaoDetalhe }) {
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Histórico</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutra-500">Histórico</h2>
             <LinhaDoTempo solicitacao={s} />
           </Card>
         </div>
@@ -213,18 +213,18 @@ function LinhaDoTempo({ solicitacao }: { solicitacao: SolicitacaoDetalhe }) {
       {eventos.map((e, i) => (
         <li key={`${e.tipo}-${e.item.id}`} className="relative pl-6">
           {i < eventos.length - 1 && (
-            <span aria-hidden className="absolute left-[5px] top-4 h-[calc(100%+0.25rem)] w-px bg-slate-200" />
+            <span aria-hidden className="absolute left-[5px] top-4 h-[calc(100%+0.25rem)] w-px bg-neutra-200" />
           )}
           <span
             aria-hidden
             className={cn(
               'absolute left-0 top-1.5 size-2.75 rounded-full border-2 border-surface ring-1',
-              e.tipo === 'status' ? 'bg-indigo-500 ring-indigo-200' : 'bg-amber-500 ring-amber-200',
+              e.tipo === 'status' ? 'bg-primaria-500 ring-primaria-200' : 'bg-amber-500 ring-amber-200',
             )}
           />
           {e.tipo === 'status' ? (
             <>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-neutra-700">
                 {e.item.statusAnterior ? (
                   <>
                     {ROTULO_STATUS[e.item.statusAnterior]} →{' '}
@@ -234,18 +234,18 @@ function LinhaDoTempo({ solicitacao }: { solicitacao: SolicitacaoDetalhe }) {
                   <strong className="font-medium">Solicitação aberta</strong>
                 )}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-neutra-500">
                 {e.item.alteradoPor.nome} · {formatarDataHora(e.item.alteradoEm)}
               </p>
             </>
           ) : (
             <>
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-neutra-700">
                 Redesignada: {e.item.deResponsavel.nome} →{' '}
                 <strong className="font-medium">{e.item.paraResponsavel.nome}</strong>
               </p>
-              {e.item.motivo && <p className="text-xs italic text-slate-600">"{e.item.motivo}"</p>}
-              <p className="text-xs text-slate-500">
+              {e.item.motivo && <p className="text-xs italic text-neutra-600">"{e.item.motivo}"</p>}
+              <p className="text-xs text-neutra-500">
                 por {e.item.redesignadoPor.nome} · {formatarDataHora(e.item.redesignadoEm)}
               </p>
             </>
@@ -259,8 +259,8 @@ function LinhaDoTempo({ solicitacao }: { solicitacao: SolicitacaoDetalhe }) {
 function Info({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div>
-      <dt className="text-slate-500">{rotulo}</dt>
-      <dd className="mt-0.5 font-medium text-slate-800">{valor}</dd>
+      <dt className="text-neutra-500">{rotulo}</dt>
+      <dd className="mt-0.5 font-medium text-neutra-800">{valor}</dd>
     </div>
   )
 }
@@ -278,7 +278,7 @@ function Falha({ mensagem, onTentarNovamente }: { mensagem: string; onTentarNova
 
 function Voltar() {
   return (
-    <Link to="/solicitacoes" className="mb-4 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800">
+    <Link to="/solicitacoes" className="mb-4 inline-flex items-center gap-1 text-sm text-neutra-500 hover:text-neutra-800">
       <ArrowLeft aria-hidden className="size-4" />
       Solicitações
     </Link>

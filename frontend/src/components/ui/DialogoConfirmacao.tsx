@@ -40,15 +40,15 @@ export function DialogoConfirmacao({
         if (!carregando) onCancelar()
       }}
       aria-labelledby="dialogo-titulo"
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl bg-surface p-0 text-slate-800 shadow-xl backdrop:bg-black/50"
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl bg-surface p-0 text-neutra-800 shadow-xl backdrop:bg-black/50"
     >
       <div className="p-6">
-        <h2 id="dialogo-titulo" className="text-lg font-semibold text-slate-900">
+        <h2 id="dialogo-titulo" className="text-lg font-semibold text-neutra-900">
           {titulo}
         </h2>
-        <div className="mt-2 text-sm text-slate-600">{children}</div>
+        <div className="mt-2 text-sm text-neutra-600">{children}</div>
       </div>
-      <div className="flex justify-end gap-2 rounded-b-xl bg-slate-50 px-6 py-4">
+      <div className="flex justify-end gap-2 rounded-b-xl bg-neutra-50 px-6 py-4">
         <Button variante="secundario" onClick={onCancelar} disabled={carregando}>
           Cancelar
         </Button>

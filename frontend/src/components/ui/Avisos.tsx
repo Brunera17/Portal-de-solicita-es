@@ -17,9 +17,9 @@ export function Avisos() {
       gap={10}
       toastOptions={{
         classNames: {
-          toast: 'aviso !rounded-xl !border !border-slate-200 !bg-surface !text-slate-800 !shadow-lg !py-3.5',
+          toast: 'aviso !rounded-xl !border !border-neutra-200 !bg-surface !text-neutra-800 !shadow-lg !py-3.5',
           title: '!font-medium',
-          description: '!text-slate-500',
+          description: '!text-neutra-500',
         },
       }}
     />

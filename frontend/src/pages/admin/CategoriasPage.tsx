@@ -35,7 +35,7 @@ export function CategoriasPage() {
         ) : categorias.data.length === 0 ? (
           <Vazio titulo="Nenhuma categoria cadastrada" />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-neutra-100">
             {categorias.data.map((c) => (
               <LinhaCategoria key={c.id} categoria={c} onExcluir={() => setExcluindo(c)} />
             ))}
@@ -43,7 +43,7 @@ export function CategoriasPage() {
         )}
       </Card>
 
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-neutra-500">
         Categorias com solicitações não podem ser excluídas, apenas desativadas: deixam de aparecer para novas
         solicitações, mas o histórico é preservado.
       </p>
@@ -74,7 +74,7 @@ function NovaCategoria() {
 
   return (
     <form onSubmit={enviar} noValidate className="mb-4">
-      <label htmlFor="nova-categoria" className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label htmlFor="nova-categoria" className="mb-1.5 block text-sm font-medium text-neutra-700">
         Nova categoria
       </label>
       <div className="flex gap-2">
@@ -167,15 +167,15 @@ function LinhaCategoria({ categoria: c, onExcluir }: { categoria: Categoria; onE
   }
 
   return (
-    <li className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3', !c.ativa && 'bg-slate-50')}>
+    <li className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3', !c.ativa && 'bg-neutra-50')}>
       <div className="min-w-0 flex-1">
-        <p className={cn('font-medium', c.ativa ? 'text-slate-800' : 'text-slate-400')}>{c.nome}</p>
-        <p className="text-xs text-slate-500">{emUso === 0 ? 'Sem solicitações' : `${emUso} solicitação(ões)`}</p>
+        <p className={cn('font-medium', c.ativa ? 'text-neutra-800' : 'text-neutra-400')}>{c.nome}</p>
+        <p className="text-xs text-neutra-500">{emUso === 0 ? 'Sem solicitações' : `${emUso} solicitação(ões)`}</p>
       </div>
       <span
         className={cn(
           'rounded-full px-2.5 py-0.5 text-xs font-medium',
-          c.ativa ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600',
+          c.ativa ? 'bg-oliva-50 text-oliva-700' : 'bg-neutra-200 text-neutra-600',
         )}
       >
         {c.ativa ? 'Ativa' : 'Inativa'}

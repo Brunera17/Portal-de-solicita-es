@@ -23,10 +23,10 @@ interface Indicador {
 }
 
 const indicadores: Indicador[] = [
-  { chave: 'total', rotulo: 'Total', icone: Layers, cor: 'bg-indigo-50 text-indigo-600', barra: '' },
-  { chave: 'abertas', rotulo: 'Abertas', icone: CircleDot, cor: 'bg-sky-50 text-sky-600', barra: 'bg-sky-500', status: 'ABERTO' },
+  { chave: 'total', rotulo: 'Total', icone: Layers, cor: 'bg-primaria-50 text-primaria-600', barra: '' },
+  { chave: 'abertas', rotulo: 'Abertas', icone: CircleDot, cor: 'bg-ameixa-50 text-ameixa-600', barra: 'bg-ameixa-500', status: 'ABERTO' },
   { chave: 'emAtendimento', rotulo: 'Em atendimento', icone: Clock, cor: 'bg-amber-50 text-amber-600', barra: 'bg-amber-500', status: 'EM_ATENDIMENTO' },
-  { chave: 'concluidas', rotulo: 'Concluídas', icone: CheckCircle2, cor: 'bg-emerald-50 text-emerald-600', barra: 'bg-emerald-500', status: 'CONCLUIDO' },
+  { chave: 'concluidas', rotulo: 'Concluídas', icone: CheckCircle2, cor: 'bg-oliva-50 text-oliva-600', barra: 'bg-oliva-500', status: 'CONCLUIDO' },
 ]
 
 export function DashboardPage() {
@@ -63,16 +63,16 @@ export function DashboardPage() {
               <Link
                 key={chave}
                 to={status ? `/solicitacoes?status=${status}` : '/solicitacoes'}
-                className="group rounded-xl border border-slate-200 bg-surface p-5 shadow-sm transition hover:border-indigo-300 hover:shadow"
+                className="group rounded-xl border border-neutra-200 bg-surface p-5 shadow-sm transition hover:border-primaria-300 hover:shadow"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-500">{rotulo}</span>
+                  <span className="text-sm font-medium text-neutra-500">{rotulo}</span>
                   <span className={cn('grid size-9 place-items-center rounded-lg', cor)}>
                     <Icone aria-hidden className="size-5" />
                   </span>
                 </div>
-                <p className="mt-3 text-3xl font-semibold tabular-nums text-slate-900">{resumo.data[chave]}</p>
-                <p className="mt-1 flex items-center gap-1 text-xs text-slate-400 group-hover:text-indigo-600">
+                <p className="mt-3 text-3xl font-semibold tabular-nums text-neutra-900">{resumo.data[chave]}</p>
+                <p className="mt-1 flex items-center gap-1 text-xs text-neutra-400 group-hover:text-primaria-600">
                   Ver lista <ArrowRight aria-hidden className="size-3" />
                 </p>
               </Link>
@@ -81,8 +81,8 @@ export function DashboardPage() {
 
           {resumo.data.total > 0 && (
             <Card className="mt-4 p-5">
-              <p className="text-sm font-medium text-slate-700">Distribuição por status</p>
-              <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-slate-100">
+              <p className="text-sm font-medium text-neutra-700">Distribuição por status</p>
+              <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-neutra-100">
                 {indicadores
                   .filter((i) => i.status)
                   .map((i) => (
@@ -94,7 +94,7 @@ export function DashboardPage() {
                     />
                   ))}
               </div>
-              <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+              <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-neutra-500">
                 {indicadores
                   .filter((i) => i.status)
                   .map((i) => (
@@ -110,9 +110,9 @@ export function DashboardPage() {
       )}
 
       <Card className="mt-8">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <h2 className="font-semibold text-slate-900">Solicitações recentes</h2>
-          <Link to="/solicitacoes" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+        <div className="flex items-center justify-between border-b border-neutra-200 px-5 py-4">
+          <h2 className="font-semibold text-neutra-900">Solicitações recentes</h2>
+          <Link to="/solicitacoes" className="text-sm font-medium text-primaria-600 hover:text-primaria-700">
             Ver todas
           </Link>
         </div>
@@ -124,14 +124,14 @@ export function DashboardPage() {
         ) : recentes.data.dados.length === 0 ? (
           <Vazio titulo="Nenhuma solicitação ainda" descricao="Registre sua primeira demanda para acompanhá-la aqui." />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-neutra-100">
             {recentes.data.dados.map((s) => (
               <li key={s.id}>
-                <Link to={`/solicitacoes/${s.id}`} className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50">
-                  <span className="w-14 shrink-0 font-mono text-xs text-slate-400">{formatarCodigo(s.id)}</span>
+                <Link to={`/solicitacoes/${s.id}`} className="flex items-center gap-4 px-5 py-3 hover:bg-neutra-50">
+                  <span className="w-14 shrink-0 font-mono text-xs text-neutra-400">{formatarCodigo(s.id)}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-slate-800">{s.titulo}</span>
-                    <span className="block text-xs text-slate-500">
+                    <span className="block truncate text-sm font-medium text-neutra-800">{s.titulo}</span>
+                    <span className="block text-xs text-neutra-500">
                       {s.solicitante.nome} · {formatarData(s.criadoEm)}
                     </span>
                   </span>

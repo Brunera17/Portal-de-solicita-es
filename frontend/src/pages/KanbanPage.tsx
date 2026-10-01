@@ -33,9 +33,9 @@ import { Carregando, ErroCarregamento } from '@/components/ui/Estados'
 const LIMITE_POR_COLUNA = 50
 
 const estiloColuna: Record<Status, { ponto: string; destaque: string }> = {
-  ABERTO: { ponto: 'bg-sky-500', destaque: 'outline-sky-400 bg-sky-50/70' },
+  ABERTO: { ponto: 'bg-ameixa-500', destaque: 'outline-ameixa-400 bg-ameixa-50/70' },
   EM_ATENDIMENTO: { ponto: 'bg-amber-500', destaque: 'outline-amber-400 bg-amber-50/70' },
-  CONCLUIDO: { ponto: 'bg-emerald-500', destaque: 'outline-emerald-400 bg-emerald-50/70' },
+  CONCLUIDO: { ponto: 'bg-oliva-500', destaque: 'outline-oliva-400 bg-oliva-50/70' },
 }
 
 interface Arrastando {
@@ -161,7 +161,7 @@ export function KanbanPage() {
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <div className="relative sm:max-w-xs sm:flex-1">
-          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutra-400" />
           <label htmlFor="kanban-busca" className="sr-only">Buscar pelo título</label>
           <Input id="kanban-busca" type="search" placeholder="Buscar pelo título..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9" />
         </div>
@@ -178,7 +178,7 @@ export function KanbanPage() {
           ))}
         </Select>
         {gerente && (
-          <div role="radiogroup" aria-label="Atendimentos exibidos" className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-200 sm:ml-auto">
+          <div role="radiogroup" aria-label="Atendimentos exibidos" className="flex rounded-lg bg-neutra-100 p-1 dark:bg-neutra-200 sm:ml-auto">
             {(['todas', 'minhas'] as const).map((opcao) => (
               <button
                 key={opcao}
@@ -188,7 +188,7 @@ export function KanbanPage() {
                 onClick={() => setEscopoGerente(opcao)}
                 className={cn(
                   'flex-1 rounded-md px-4 py-1.5 text-sm font-medium transition-colors',
-                  escopoGerente === opcao ? 'bg-surface text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800',
+                  escopoGerente === opcao ? 'bg-surface text-neutra-900 shadow-sm' : 'text-neutra-500 hover:text-neutra-800',
                 )}
               >
                 {opcao === 'todas' ? 'Todas' : 'Minhas'}
@@ -199,13 +199,13 @@ export function KanbanPage() {
       </div>
 
       {!podeMover ? (
-        <p className="mb-4 flex items-center gap-2 text-sm text-slate-500">
+        <p className="mb-4 flex items-center gap-2 text-sm text-neutra-500">
           <Info aria-hidden className="size-4" />
           O status é atualizado pela equipe de atendimento.
         </p>
       ) : (
         !gerente && (
-          <p className="mb-4 flex items-center gap-2 text-sm text-slate-500">
+          <p className="mb-4 flex items-center gap-2 text-sm text-neutra-500">
             <Info aria-hidden className="size-4" />
             Em Atendimento e Concluído mostram os seus atendimentos. A coluna Aberto é a fila de todos.
           </p>
@@ -271,7 +271,7 @@ function Coluna({ status, itens, total, podeMover, pendentes, carga, destaque, b
       ref={setNodeRef}
       aria-label={`${ROTULO_STATUS[status]}: ${total} solicitação(ões)`}
       className={cn(
-        'flex w-[85vw] max-w-sm shrink-0 snap-start flex-col rounded-xl bg-slate-100/80 p-3 transition sm:w-80 lg:w-auto lg:max-w-none',
+        'flex w-[85vw] max-w-sm shrink-0 snap-start flex-col rounded-xl bg-neutra-100/80 p-3 transition sm:w-80 lg:w-auto lg:max-w-none',
         // Só a coluna de destino permitida fica destacada durante o arraste
         destaque && 'outline-2 outline-dashed',
         destaque && estiloColuna[status].destaque,
@@ -281,15 +281,15 @@ function Coluna({ status, itens, total, podeMover, pendentes, carga, destaque, b
     >
       <header className="mb-3 flex items-center gap-2 px-1">
         <span aria-hidden className={cn('size-2 rounded-full', estiloColuna[status].ponto)} />
-        <h2 className="text-sm font-semibold text-slate-700">{ROTULO_STATUS[status]}</h2>
-        <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-slate-500">{total}</span>
+        <h2 className="text-sm font-semibold text-neutra-700">{ROTULO_STATUS[status]}</h2>
+        <span className="ml-auto rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-neutra-500">{total}</span>
       </header>
       {carga !== undefined && (
         <p
           title={`Cada pessoa pode ter até ${LIMITE_EM_ATENDIMENTO} solicitações em atendimento ao mesmo tempo`}
           className={cn(
             'mb-3 flex items-center justify-between rounded-lg px-3 py-1.5 text-xs font-medium',
-            carga >= LIMITE_EM_ATENDIMENTO ? 'bg-amber-100 text-amber-800' : 'bg-surface text-slate-500',
+            carga >= LIMITE_EM_ATENDIMENTO ? 'bg-amber-100 text-amber-800' : 'bg-surface text-neutra-500',
           )}
         >
           <span>{carga >= LIMITE_EM_ATENDIMENTO ? 'Você atingiu o limite' : 'Seus atendimentos'}</span>
@@ -306,14 +306,14 @@ function Coluna({ status, itens, total, podeMover, pendentes, carga, destaque, b
           </li>
         ))}
         {itens.length === 0 && (
-          <li className="rounded-lg border-2 border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
+          <li className="rounded-lg border-2 border-dashed border-neutra-200 px-3 py-6 text-center text-xs text-neutra-400">
             Nenhuma solicitação
           </li>
         )}
       </ul>
 
       {total > itens.length && (
-        <Link to={`/solicitacoes?status=${status}`} className="mt-3 block text-center text-xs font-medium text-indigo-600 hover:text-indigo-700">
+        <Link to={`/solicitacoes?status=${status}`} className="mt-3 block text-center text-xs font-medium text-primaria-600 hover:text-primaria-700">
           Ver todas as {total} na lista
         </Link>
       )}
@@ -349,30 +349,30 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
     <article
       onClick={() => !flutuando && navigate(`/solicitacoes/${s.id}`)}
       className={cn(
-        'group cursor-pointer rounded-lg border border-slate-200 bg-surface p-3 shadow-sm transition hover:border-indigo-300',
+        'group cursor-pointer rounded-lg border border-neutra-200 bg-surface p-3 shadow-sm transition hover:border-primaria-300',
         // Ainda não aberta por quem está vendo: destaque até o primeiro acesso
-        s.nova && 'border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-400/40',
+        s.nova && 'border-primaria-300 bg-primaria-50/60 ring-2 ring-primaria-400/40',
         arrastavel && 'cursor-grab active:cursor-grabbing',
         pendente && 'animate-pulse',
-        flutuando && 'rotate-2 cursor-grabbing shadow-lg ring-2 ring-indigo-300',
+        flutuando && 'rotate-2 cursor-grabbing shadow-lg ring-2 ring-primaria-300',
       )}
     >
       <div className="flex items-start gap-2">
         <Link
           to={`/solicitacoes/${s.id}`}
           onClick={(e) => e.stopPropagation()}
-          className="min-w-0 flex-1 text-sm font-medium leading-snug text-slate-800 hover:text-indigo-600"
+          className="min-w-0 flex-1 text-sm font-medium leading-snug text-neutra-800 hover:text-primaria-600"
         >
           {s.titulo}
         </Link>
-        {arrastavel && <GripVertical aria-hidden className="size-4 shrink-0 text-slate-300 group-hover:text-slate-400" />}
+        {arrastavel && <GripVertical aria-hidden className="size-4 shrink-0 text-neutra-300 group-hover:text-neutra-400" />}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {s.nova && <NovaBadge />}
-        <span className="font-mono text-xs text-slate-400">{formatarCodigo(s.id)}</span>
+        <span className="font-mono text-xs text-neutra-400">{formatarCodigo(s.id)}</span>
         <CategoriaBadge nome={s.categoria.nome} />
       </div>
-      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500">
+      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-neutra-500">
         <span className="flex min-w-0 items-center gap-1.5" title={`Solicitante: ${s.solicitante.nome}`}>
           <Avatar nome={s.solicitante.nome} cor={s.solicitante.corAvatar} tamanho="sm" />
           <span className="truncate">{s.solicitante.nome}</span>
@@ -380,8 +380,8 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
         <span className="flex shrink-0 items-center gap-2">
           {formatarData(s.criadoEm)}
           {s.responsavel && (
-            <span title={`Atendido por ${s.responsavel.nome}`} className="flex items-center gap-1 border-l border-slate-200 pl-2">
-              <UserCheck aria-hidden className="size-3 text-slate-400" />
+            <span title={`Atendido por ${s.responsavel.nome}`} className="flex items-center gap-1 border-l border-neutra-200 pl-2">
+              <UserCheck aria-hidden className="size-3 text-neutra-400" />
               <Avatar nome={s.responsavel.nome} cor={s.responsavel.corAvatar} tamanho="sm" />
             </span>
           )}

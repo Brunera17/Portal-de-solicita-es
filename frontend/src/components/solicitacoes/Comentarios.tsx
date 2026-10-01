@@ -49,10 +49,10 @@ export function Comentarios({ solicitacaoId }: { solicitacaoId: number }) {
 
   return (
     <Card>
-      <div className="flex items-center gap-2 border-b border-slate-200 px-6 py-4">
-        <MessageSquare aria-hidden className="size-4 text-slate-400" />
-        <h2 className="font-semibold text-slate-900">Comentários</h2>
-        {comentarios.data && <span className="text-sm text-slate-400">({comentarios.data.length})</span>}
+      <div className="flex items-center gap-2 border-b border-neutra-200 px-6 py-4">
+        <MessageSquare aria-hidden className="size-4 text-neutra-400" />
+        <h2 className="font-semibold text-neutra-900">Comentários</h2>
+        {comentarios.data && <span className="text-sm text-neutra-400">({comentarios.data.length})</span>}
       </div>
 
       {comentarios.isPending ? (
@@ -60,7 +60,7 @@ export function Comentarios({ solicitacaoId }: { solicitacaoId: number }) {
       ) : comentarios.isError ? (
         <ErroCarregamento mensagem={mensagemDeErro(comentarios.error)} onTentarNovamente={() => comentarios.refetch()} />
       ) : comentarios.data.length === 0 ? (
-        <p className="px-6 py-8 text-center text-sm text-slate-500">Nenhum comentário ainda.</p>
+        <p className="px-6 py-8 text-center text-sm text-neutra-500">Nenhum comentário ainda.</p>
       ) : (
         <ul className="space-y-4 px-6 py-5">
           {comentarios.data.map((c) => (
@@ -69,13 +69,13 @@ export function Comentarios({ solicitacaoId }: { solicitacaoId: number }) {
               <div
                 className={cn(
                   'min-w-0 flex-1 rounded-lg px-4 py-3',
-                  c.interno ? 'border border-dashed border-amber-300 bg-amber-50' : 'bg-slate-50',
+                  c.interno ? 'border border-dashed border-amber-300 bg-amber-50' : 'bg-neutra-50',
                 )}
               >
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                  <span className="font-semibold text-slate-800">{c.autor.nome}</span>
-                  <span className="text-slate-400">{ROTULO_PERFIL[c.autor.perfil]}</span>
-                  <span className="text-slate-400">· {formatarDataHora(c.criadoEm)}</span>
+                  <span className="font-semibold text-neutra-800">{c.autor.nome}</span>
+                  <span className="text-neutra-400">{ROTULO_PERFIL[c.autor.perfil]}</span>
+                  <span className="text-neutra-400">· {formatarDataHora(c.criadoEm)}</span>
                   {c.interno && (
                     <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800">
                       <Lock aria-hidden className="size-3" />
@@ -83,14 +83,14 @@ export function Comentarios({ solicitacaoId }: { solicitacaoId: number }) {
                     </span>
                   )}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-700">{c.texto}</p>
+                <p className="mt-1 whitespace-pre-wrap break-words text-sm text-neutra-700">{c.texto}</p>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <form onSubmit={enviar} noValidate className="border-t border-slate-200 px-6 py-4">
+      <form onSubmit={enviar} noValidate className="border-t border-neutra-200 px-6 py-4">
         <label htmlFor="novo-comentario" className="sr-only">
           Novo comentário
         </label>
@@ -111,18 +111,18 @@ export function Comentarios({ solicitacaoId }: { solicitacaoId: number }) {
         )}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           {equipe ? (
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-neutra-600">
               <input
                 type="checkbox"
                 checked={interno}
                 onChange={(e) => setInterno(e.target.checked)}
-                className="size-4 rounded border-slate-300 accent-amber-600"
+                className="size-4 rounded border-neutra-300 accent-amber-600"
               />
               <Lock aria-hidden className="size-3.5 text-amber-600" />
               Nota interna (visível só para a equipe)
             </label>
           ) : (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-neutra-400">
               {texto.length}/{LIMITE}
             </span>
           )}

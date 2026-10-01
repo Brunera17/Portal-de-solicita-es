@@ -62,17 +62,17 @@ export function LoginPage() {
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="grid size-12 place-items-center rounded-xl bg-marca text-white shadow-lg shadow-indigo-600/20">
+          <span className="grid size-12 place-items-center rounded-xl bg-marca text-white shadow-lg shadow-primaria-600/20">
             <ClipboardList aria-hidden className="size-6" />
           </span>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">Portal de Solicitações</h1>
-          <p className="mt-1 text-sm text-slate-500">Entre para registrar e acompanhar suas demandas</p>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-neutra-900">Portal de Solicitações</h1>
+          <p className="mt-1 text-sm text-neutra-500">Entre para registrar e acompanhar suas demandas</p>
         </div>
 
         <form
           onSubmit={handleSubmit(entrar)}
           noValidate
-          className="space-y-5 rounded-xl border border-slate-200 bg-surface p-6 shadow-sm"
+          className="space-y-5 rounded-xl border border-neutra-200 bg-surface p-6 shadow-sm"
         >
           {erroLogin && (
             <div role="alert" className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -101,22 +101,22 @@ export function LoginPage() {
         </form>
 
         {exibirUsuariosDemo && (
-          <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Usuários de demonstração</p>
+          <div className="mt-6 rounded-xl border border-dashed border-neutra-300 p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-neutra-500">Usuários de demonstração</p>
             <ul className="mt-2 space-y-1">
               {usuariosDemo.map((u) => (
                 <li key={u.usuario}>
                   <button
                     type="button"
                     onClick={() => preencher(u)}
-                    className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100"
+                    className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-neutra-100"
                   >
                     <span>
-                      <span className="font-mono text-slate-800">{u.usuario}</span>
-                      <span className="text-slate-400"> / </span>
-                      <span className="font-mono text-slate-600">{u.senha}</span>
+                      <span className="font-mono text-neutra-800">{u.usuario}</span>
+                      <span className="text-neutra-400"> / </span>
+                      <span className="font-mono text-neutra-600">{u.senha}</span>
                     </span>
-                    <span className="text-xs text-slate-500">{u.perfil}</span>
+                    <span className="text-xs text-neutra-500">{u.perfil}</span>
                   </button>
                 </li>
               ))}

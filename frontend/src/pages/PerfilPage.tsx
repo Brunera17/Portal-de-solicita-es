@@ -42,7 +42,7 @@ export function PerfilPage() {
         <FormDados />
         <FormSenha />
       </div>
-      <p className="mt-6 text-xs text-slate-500">
+      <p className="mt-6 text-xs text-neutra-500">
         Usuário de acesso: <span className="font-mono">{usuario.usuario}</span> · Perfil: {ROTULO_PERFIL[usuario.perfil]}.
         Para alterar o perfil de acesso, procure um gerente.
       </p>
@@ -86,13 +86,13 @@ function FormDados() {
   return (
     <Card>
       <form onSubmit={handleSubmit(enviar)} noValidate className="space-y-5 p-6">
-        <h2 className="font-semibold text-slate-900">Dados pessoais</h2>
+        <h2 className="font-semibold text-neutra-900">Dados pessoais</h2>
 
         <div className="flex items-center gap-4">
           <Avatar nome={nome || usuario.nome} cor={cor} tamanho="lg" />
           <div className="min-w-0">
-            <p className="truncate font-medium text-slate-800">{nome || usuario.nome}</p>
-            <p className="text-sm text-slate-500">{ROTULO_PERFIL[usuario.perfil]}</p>
+            <p className="truncate font-medium text-neutra-800">{nome || usuario.nome}</p>
+            <p className="text-sm text-neutra-500">{ROTULO_PERFIL[usuario.perfil]}</p>
           </div>
         </div>
 
@@ -101,7 +101,7 @@ function FormDados() {
         </Campo>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-slate-700">Cor do avatar</legend>
+          <legend className="mb-2 text-sm font-medium text-neutra-700">Cor do avatar</legend>
           <div role="radiogroup" className="flex flex-wrap gap-2">
             {CORES_AVATAR.map((c: CorAvatar) => (
               <button
@@ -115,7 +115,7 @@ function FormDados() {
                 className={cn(
                   'grid size-9 place-items-center rounded-full ring-offset-2 ring-offset-surface transition',
                   CLASSES_AVATAR[c],
-                  cor === c ? 'ring-2 ring-indigo-500' : 'hover:ring-2 hover:ring-slate-300',
+                  cor === c ? 'ring-2 ring-primaria-500' : 'hover:ring-2 hover:ring-neutra-300',
                 )}
               >
                 {cor === c && <Check aria-hidden className="size-4" />}
@@ -124,7 +124,7 @@ function FormDados() {
           </div>
         </fieldset>
 
-        <div className="flex justify-end border-t border-slate-200 pt-5">
+        <div className="flex justify-end border-t border-neutra-200 pt-5">
           <Button type="submit" carregando={salvar.isPending} disabled={!isDirty}>
             Salvar dados
           </Button>
@@ -162,7 +162,7 @@ function FormSenha() {
   return (
     <Card>
       <form onSubmit={handleSubmit(enviar)} noValidate className="space-y-5 p-6">
-        <h2 className="font-semibold text-slate-900">Alterar senha</h2>
+        <h2 className="font-semibold text-neutra-900">Alterar senha</h2>
 
         <Campo id="senha-atual" rotulo="Senha atual" erro={errors.senhaAtual?.message}>
           <Input id="senha-atual" type="password" autoComplete="current-password" erro={errors.senhaAtual?.message} {...register('senhaAtual')} />
@@ -174,7 +174,7 @@ function FormSenha() {
           <Input id="confirmacao" type="password" autoComplete="new-password" erro={errors.confirmacao?.message} {...register('confirmacao')} />
         </Campo>
 
-        <div className="flex justify-end border-t border-slate-200 pt-5">
+        <div className="flex justify-end border-t border-neutra-200 pt-5">
           <Button type="submit" carregando={trocar.isPending}>
             Alterar senha
           </Button>

@@ -11,10 +11,10 @@ export function AdminLayout() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Administração</h1>
-        <p className="mt-1 text-sm text-slate-500">Gerencie os usuários do portal e as categorias de solicitação.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-neutra-900">Administração</h1>
+        <p className="mt-1 text-sm text-neutra-500">Gerencie os usuários do portal e as categorias de solicitação.</p>
       </div>
-      <nav aria-label="Administração" className="mb-6 flex gap-1 border-b border-slate-200">
+      <nav aria-label="Administração" className="mb-6 flex gap-1 border-b border-neutra-200">
         {abas.map(({ to, rotulo, icone: Icone }) => (
           <NavLink
             key={to}
@@ -23,8 +23,8 @@ export function AdminLayout() {
               cn(
                 '-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors',
                 isActive
-                  ? 'border-indigo-600 text-indigo-700'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
+                  ? 'border-primaria-600 text-primaria-700'
+                  : 'border-transparent text-neutra-500 hover:border-neutra-300 hover:text-neutra-700',
               )
             }
           >

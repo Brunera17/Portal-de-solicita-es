@@ -2,13 +2,13 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from '@/lib/cn'
 
 const base =
-  'block w-full rounded-lg border bg-surface px-3 text-sm text-slate-800 placeholder:text-slate-400 ' +
-  'focus:outline-none focus:ring-2 disabled:bg-slate-100 disabled:text-slate-500'
+  'block w-full rounded-lg border bg-surface px-3 text-sm text-neutra-800 placeholder:text-neutra-400 ' +
+  'focus:outline-none focus:ring-2 disabled:bg-neutra-100 disabled:text-neutra-500'
 
 const estado = (erro?: string) =>
   erro
     ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-    : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'
+    : 'border-neutra-300 focus:border-primaria-500 focus:ring-primaria-200'
 
 interface CampoProps {
   id: string
@@ -23,7 +23,7 @@ interface CampoProps {
 export function Campo({ id, rotulo, erro, dica, children, className }: CampoProps) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-neutra-700">
         {rotulo}
       </label>
       {children}
@@ -32,7 +32,7 @@ export function Campo({ id, rotulo, erro, dica, children, className }: CampoProp
           {erro}
         </p>
       ) : (
-        dica && <p className="mt-1.5 text-xs text-slate-500">{dica}</p>
+        dica && <p className="mt-1.5 text-xs text-neutra-500">{dica}</p>
       )}
     </div>
   )

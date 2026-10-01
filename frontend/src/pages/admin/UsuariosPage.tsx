@@ -20,8 +20,8 @@ import { Carregando, ErroCarregamento } from '@/components/ui/Estados'
 import { Modal } from '@/components/ui/Modal'
 
 const corPerfil: Record<Perfil, string> = {
-  SOLICITANTE: 'bg-slate-100 text-slate-700',
-  ATENDENTE: 'bg-sky-50 text-sky-700',
+  SOLICITANTE: 'bg-neutra-100 text-neutra-700',
+  ATENDENTE: 'bg-ameixa-50 text-ameixa-700',
   GERENTE: 'bg-violet-50 text-violet-700',
 }
 
@@ -41,7 +41,7 @@ export function UsuariosPage() {
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-neutra-500">
           {usuarios.data ? `${usuarios.data.filter((u) => u.ativo).length} usuários ativos` : ' '}
         </p>
         <Button onClick={() => setDialogo({ tipo: 'novo' })}>
@@ -56,18 +56,18 @@ export function UsuariosPage() {
         ) : usuarios.isError ? (
           <ErroCarregamento mensagem={mensagemDeErro(usuarios.error)} onTentarNovamente={() => usuarios.refetch()} />
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-neutra-100">
             {usuarios.data.map((u) => {
               const souEu = u.id === eu.id
               return (
-                <li key={u.id} className={cn('flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4', !u.ativo && 'bg-slate-50')}>
+                <li key={u.id} className={cn('flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4', !u.ativo && 'bg-neutra-50')}>
                   <Avatar nome={u.nome} cor={u.corAvatar} className={cn(!u.ativo && 'opacity-50')} />
                   <div className="min-w-0 flex-1 basis-48">
-                    <p className={cn('truncate font-medium', u.ativo ? 'text-slate-800' : 'text-slate-400 line-through')}>
+                    <p className={cn('truncate font-medium', u.ativo ? 'text-neutra-800' : 'text-neutra-400 line-through')}>
                       {u.nome}
-                      {souEu && <span className="ml-2 text-xs font-normal text-slate-400">(você)</span>}
+                      {souEu && <span className="ml-2 text-xs font-normal text-neutra-400">(você)</span>}
                     </p>
-                    <p className="truncate text-xs text-slate-500">
+                    <p className="truncate text-xs text-neutra-500">
                       <span className="font-mono">{u.usuario}</span> · {u._count.solicitacoes} solicitação(ões) · desde{' '}
                       {formatarData(u.criadoEm)}
                     </p>
@@ -287,7 +287,7 @@ function ConfirmarAtivacao({ usuario, onFechar }: { usuario: UsuarioAdmin; onFec
 
 function Rodape({ carregando, rotulo, onCancelar }: { carregando: boolean; rotulo: string; onCancelar: () => void }) {
   return (
-    <div className="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+    <div className="flex justify-end gap-2 rounded-b-xl border-t border-neutra-200 bg-neutra-50 px-6 py-4">
       <Button variante="secundario" onClick={onCancelar} disabled={carregando}>
         Cancelar
       </Button>

@@ -14,7 +14,7 @@ export function SeletorTema() {
   const { preferencia, definir } = useTema()
 
   return (
-    <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-200">
+    <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-1 rounded-lg bg-neutra-100 p-1 dark:bg-neutra-200">
       {opcoes.map(({ valor, rotulo, icone: Icone }) => (
         <button
           key={valor}
@@ -25,7 +25,7 @@ export function SeletorTema() {
           onClick={() => definir(valor)}
           className={cn(
             'flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-colors',
-            preferencia === valor ? 'bg-surface text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800',
+            preferencia === valor ? 'bg-surface text-neutra-900 shadow-sm' : 'text-neutra-500 hover:text-neutra-800',
           )}
         >
           <Icone aria-hidden className="size-3.5" />

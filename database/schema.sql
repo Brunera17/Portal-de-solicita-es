@@ -12,7 +12,7 @@ CREATE TYPE "perfil_usuario" AS ENUM ('SOLICITANTE', 'ATENDENTE', 'GERENTE');
 CREATE TYPE "status_solicitacao" AS ENUM ('ABERTO', 'EM_ATENDIMENTO', 'CONCLUIDO');
 
 -- CreateEnum
-CREATE TYPE "tipo_notificacao" AS ENUM ('STATUS_ALTERADO', 'NOVO_COMENTARIO');
+CREATE TYPE "tipo_notificacao" AS ENUM ('STATUS_ALTERADO', 'NOVO_COMENTARIO', 'NOVA_SOLICITACAO');
 
 -- CreateTable
 CREATE TABLE "usuarios" (

@@ -145,7 +145,19 @@ export async function popularBanco(prisma: PrismaClient) {
     const codigo = `#${String(criada.id).padStart(4, '0')}`;
     const nomeDe = (id: number) => usuarios.find((u) => idsPorUsuario.get(u.usuario) === id)!.nome;
     const rotulo = { ABERTO: 'Aberto', EM_ATENDIMENTO: 'Em Atendimento', CONCLUIDO: 'Concluído' };
+    // Equipe é avisada das solicitações abertas recentes que ainda ninguém abriu (destaque "Nova")
+    const equipe = usuarios.filter((u) => u.perfil !== Perfil.SOLICITANTE).map((u) => idsPorUsuario.get(u.usuario)!);
+    const recemAberta = s.status === ABERTO && s.diasAtras <= 2;
     const notificacoes = [
+      ...(recemAberta
+        ? equipe.map((destinatarioId) => ({
+            destinatarioId,
+            autorId: solicitanteId,
+            tipo: TipoNotificacao.NOVA_SOLICITACAO,
+            mensagem: `${nomeDe(solicitanteId)} abriu ${codigo} "${s.titulo}" (${s.categoria})`,
+            criadoEm,
+          }))
+        : []),
       ...criada.historico
         .filter((h) => h.statusAnterior)
         .map((h) => ({

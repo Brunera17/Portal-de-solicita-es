@@ -11,7 +11,7 @@ import { cn } from '@/lib/cn'
 import { formatarCodigo, formatarData } from '@/lib/format'
 import { STATUS, type SolicitacaoResumo } from '@/types'
 import { BotaoLink, Button } from '@/components/ui/Button'
-import { CategoriaBadge, StatusBadge } from '@/components/ui/Badges'
+import { CategoriaBadge, NovaBadge, StatusBadge } from '@/components/ui/Badges'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Campo, Input, Select } from '@/components/ui/Campo'
 import { Card } from '@/components/ui/Card'
@@ -226,13 +226,16 @@ function TabelaSolicitacoes({ itens }: { itens: SolicitacaoResumo[] }) {
             >
               <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-slate-500">{formatarCodigo(s.id)}</td>
               <td className="max-w-xs px-4 py-3">
-                <Link
-                  to={`/solicitacoes/${s.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="block truncate font-medium text-slate-800 hover:text-indigo-600"
-                >
-                  {s.titulo}
-                </Link>
+                <span className="flex items-center gap-2">
+                  {s.nova && <NovaBadge />}
+                  <Link
+                    to={`/solicitacoes/${s.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className={cn('block truncate hover:text-indigo-600', s.nova ? 'font-semibold text-slate-900' : 'font-medium text-slate-800')}
+                  >
+                    {s.titulo}
+                  </Link>
+                </span>
               </td>
               <td className="px-4 py-3"><CategoriaBadge nome={s.categoria.nome} /></td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-600">{s.solicitante.nome}</td>
@@ -254,7 +257,10 @@ function ListaCartoes({ itens }: { itens: SolicitacaoResumo[] }) {
         <li key={s.id}>
           <Link to={`/solicitacoes/${s.id}`} className="block space-y-2 px-4 py-4 hover:bg-slate-50">
             <div className="flex items-start justify-between gap-3">
-              <span className="font-medium text-slate-800">{s.titulo}</span>
+              <span className="flex flex-wrap items-center gap-2 font-medium text-slate-800">
+                {s.nova && <NovaBadge />}
+                {s.titulo}
+              </span>
               <StatusBadge status={s.status} />
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">

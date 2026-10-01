@@ -35,7 +35,10 @@ interface Dependencias {
   repo: SolicitacoesRepository;
   /** Só o necessário para validar a categoria informada. */
   categorias: { buscarPorId(id: number): Promise<{ id: number; nome: string; ativa: boolean } | null> };
-  notificacoes: Pick<typeof notificacoesService, 'statusAlterado'>;
+  notificacoes: Pick<
+    typeof notificacoesService,
+    'statusAlterado' | 'novaSolicitacao' | 'marcarLidasDaSolicitacao' | 'solicitacoesNaoVistas'
+  >;
 }
 
 export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dependencias) {
@@ -94,8 +97,11 @@ export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dep
         { skip: (pagina - 1) * porPagina, take: porPagina },
       );
 
+      // "nova" = ainda não aberta por este usuário (destaque no quadro e na lista)
+      const naoVistas = await notificacoes.solicitacoesNaoVistas(usuario.id, itens.map((s) => s.id));
+
       return {
-        dados: itens,
+        dados: itens.map((s) => ({ ...s, nova: naoVistas.has(s.id) })),
         paginacao: { pagina, porPagina, total, totalPaginas: Math.max(1, Math.ceil(total / porPagina)) },
       };
     },
@@ -104,9 +110,18 @@ export function criarSolicitacoesService({ repo, categorias, notificacoes }: Dep
       return buscarVisivel(id, usuario);
     },
 
+    /** Abertura pela interface: além de obter, dá como lidas as notificações desta solicitação. */
+    async abrir(id: number, usuario: UsuarioAutenticado) {
+      const solicitacao = await buscarVisivel(id, usuario);
+      await notificacoes.marcarLidasDaSolicitacao(usuario.id, id);
+      return solicitacao;
+    },
+
     async criar(dados: SolicitacaoInput, usuario: UsuarioAutenticado) {
       await validarCategoria(dados.categoriaId);
-      return repo.criar(dados, usuario.id);
+      const criada = await repo.criar(dados, usuario.id);
+      await notificacoes.novaSolicitacao(criada, usuario);
+      return criada;
     },
 
     async atualizar(id: number, dados: SolicitacaoInput, usuario: UsuarioAutenticado) {

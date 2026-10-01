@@ -28,6 +28,19 @@ export function StatusBadge({ status }: { status: Status }) {
   )
 }
 
+/** Selo de solicitação ainda não aberta pelo usuário logado. */
+export function NovaBadge() {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+      <span aria-hidden className="relative flex size-1.5">
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-75 motion-reduce:hidden" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-white" />
+      </span>
+      Nova
+    </span>
+  )
+}
+
 export function CategoriaBadge({ nome }: { nome: string }) {
   return (
     <span className="inline-flex whitespace-nowrap rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">

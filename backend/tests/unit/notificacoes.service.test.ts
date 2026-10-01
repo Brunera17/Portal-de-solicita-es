@@ -2,9 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { notificacoesService } from '../../src/modules/notificacoes/notificacoes.service';
 
 // vi.mock é içado para antes dos imports; vi.hoisted cria o mock nesse mesmo momento
-const { criarVarias } = vi.hoisted(() => ({ criarVarias: vi.fn() }));
+const { criarVarias, listarIdsEquipeAtiva } = vi.hoisted(() => ({ criarVarias: vi.fn(), listarIdsEquipeAtiva: vi.fn() }));
 vi.mock('../../src/modules/notificacoes/notificacoes.repository', () => ({
   notificacoesRepository: { criarVarias },
+}));
+vi.mock('../../src/modules/usuarios/usuarios.repository', () => ({
+  usuariosRepository: { listarIdsEquipeAtiva },
 }));
 
 const maria = { id: 3, nome: 'Maria Silva' };
@@ -36,6 +39,22 @@ describe('notificacoesService', () => {
   it('nota interna nunca avisa o solicitante', async () => {
     await notificacoesService.novoComentario(solicitacao, true, gerente);
     expect(destinatarios()).toEqual([ana.id]);
+  });
+
+  it('nova solicitação avisa toda a equipe ativa, com título e categoria', async () => {
+    listarIdsEquipeAtiva.mockResolvedValue([gerente.id, ana.id]);
+    await notificacoesService.novaSolicitacao({ ...solicitacao, categoria: { nome: 'TI' } }, maria);
+    expect(destinatarios().sort()).toEqual([gerente.id, ana.id].sort());
+    expect(criarVarias.mock.calls[0][0][0]).toMatchObject({
+      tipo: 'NOVA_SOLICITACAO',
+      mensagem: 'Maria Silva abriu #0007 "Reembolso" (TI)',
+    });
+  });
+
+  it('membro da equipe que abre uma solicitação não avisa a si mesmo', async () => {
+    listarIdsEquipeAtiva.mockResolvedValue([gerente.id, ana.id]);
+    await notificacoesService.novaSolicitacao({ ...solicitacao, categoria: { nome: 'TI' } }, ana);
+    expect(destinatarios()).toEqual([gerente.id]);
   });
 
   it('não gera nada quando o único envolvido é o autor', async () => {

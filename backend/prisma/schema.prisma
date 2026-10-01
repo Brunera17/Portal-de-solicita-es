@@ -27,6 +27,7 @@ enum StatusSolicitacao {
 enum TipoNotificacao {
   STATUS_ALTERADO
   NOVO_COMENTARIO
+  NOVA_SOLICITACAO
 
   @@map("tipo_notificacao")
 }

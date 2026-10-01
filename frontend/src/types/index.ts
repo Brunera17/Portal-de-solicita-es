@@ -49,6 +49,8 @@ export interface SolicitacaoResumo {
   solicitante: PessoaResumo
   /** Quem iniciou o atendimento (null enquanto Aberto). */
   responsavel: PessoaResumo | null
+  /** Só na listagem: ainda não aberta pelo usuário logado (destaque "Nova"). */
+  nova?: boolean
 }
 
 export interface HistoricoStatus {
@@ -103,7 +105,7 @@ export interface ResumoDashboard {
 
 export interface Notificacao {
   id: number
-  tipo: 'STATUS_ALTERADO' | 'NOVO_COMENTARIO'
+  tipo: 'STATUS_ALTERADO' | 'NOVO_COMENTARIO' | 'NOVA_SOLICITACAO'
   mensagem: string
   lida: boolean
   criadoEm: string

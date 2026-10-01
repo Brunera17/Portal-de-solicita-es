@@ -1,4 +1,4 @@
-import type { Perfil, Prisma } from '@prisma/client';
+import { Perfil, type Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 export const camposPublicosUsuario = {
@@ -22,6 +22,15 @@ export const usuariosRepository = {
 
   buscarAtivoPorId(id: number) {
     return prisma.usuario.findFirst({ where: { id, ativo: true }, select: camposPublicosUsuario });
+  },
+
+  /** Ids da equipe de atendimento ativa (atendentes e gerentes). */
+  async listarIdsEquipeAtiva() {
+    const equipe = await prisma.usuario.findMany({
+      where: { ativo: true, perfil: { in: [Perfil.ATENDENTE, Perfil.GERENTE] } },
+      select: { id: true },
+    });
+    return equipe.map((u) => u.id);
   },
 
   buscarSenhaHash(id: number) {

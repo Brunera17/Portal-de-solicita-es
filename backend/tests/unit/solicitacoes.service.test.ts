@@ -46,14 +46,23 @@ function criarRepoFake() {
   } satisfies Record<keyof SolicitacoesRepository, unknown>;
 }
 
+function criarNotificacoesFake() {
+  return {
+    statusAlterado: vi.fn(async () => undefined),
+    novaSolicitacao: vi.fn(async () => undefined),
+    marcarLidasDaSolicitacao: vi.fn(async () => undefined),
+    solicitacoesNaoVistas: vi.fn(async () => new Set<number>()),
+  };
+}
+
 describe('solicitacoesService', () => {
   let repo: ReturnType<typeof criarRepoFake>;
-  let notificacoes: { statusAlterado: ReturnType<typeof vi.fn<() => Promise<void>>> };
+  let notificacoes: ReturnType<typeof criarNotificacoesFake>;
   let service: ReturnType<typeof criarSolicitacoesService>;
 
   beforeEach(() => {
     repo = criarRepoFake();
-    notificacoes = { statusAlterado: vi.fn(async () => undefined) };
+    notificacoes = criarNotificacoesFake();
     service = criarSolicitacoesService({
       repo: repo as unknown as SolicitacoesRepository,
       categorias: { buscarPorId: async (id: number) => categoriasPorId.get(id) ?? null },
@@ -94,6 +103,35 @@ describe('solicitacoesService', () => {
       repo.listar.mockResolvedValue({ itens: [], total: 21 });
       const r = await service.listar({ pagina: 1, porPagina: 10 }, atendente);
       expect(r.paginacao).toEqual({ pagina: 1, porPagina: 10, total: 21, totalPaginas: 3 });
+    });
+  });
+
+  describe('novidades', () => {
+    it('avisa a equipe ao criar uma solicitação', async () => {
+      const criada = solicitacao('ABERTO');
+      repo.criar.mockResolvedValue(criada);
+      await service.criar(dados, maria);
+      expect(notificacoes.novaSolicitacao).toHaveBeenCalledWith(criada, maria);
+    });
+
+    it('marca como "nova" o que o usuário ainda não abriu', async () => {
+      repo.listar.mockResolvedValue({ itens: [{ id: 1 }, { id: 2 }], total: 2 });
+      notificacoes.solicitacoesNaoVistas.mockResolvedValue(new Set([2]));
+      const r = await service.listar({ pagina: 1, porPagina: 10 }, atendente);
+      expect(notificacoes.solicitacoesNaoVistas).toHaveBeenCalledWith(atendente.id, [1, 2]);
+      expect(r.dados).toEqual([{ id: 1, nova: false }, { id: 2, nova: true }]);
+    });
+
+    it('abrir a solicitação dá como lidas as notificações dela', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO', joao));
+      await service.abrir(10, atendente);
+      expect(notificacoes.marcarLidasDaSolicitacao).toHaveBeenCalledWith(atendente.id, 10);
+    });
+
+    it('não marca nada se o usuário não pode ver a solicitação', async () => {
+      repo.buscarPorId.mockResolvedValue(solicitacao('ABERTO', joao));
+      await expect(service.abrir(10, maria)).rejects.toMatchObject({ statusCode: 403 });
+      expect(notificacoes.marcarLidasDaSolicitacao).not.toHaveBeenCalled();
     });
   });
 

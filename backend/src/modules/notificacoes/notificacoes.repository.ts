@@ -1,4 +1,4 @@
-import type { TipoNotificacao } from '@prisma/client';
+import { TipoNotificacao } from '@prisma/client';
 import { prisma } from '../../lib/prisma';
 
 export interface NovaNotificacao {
@@ -39,6 +39,22 @@ export const notificacoesRepository = {
   async marcarLida(id: number, destinatarioId: number) {
     const { count } = await prisma.notificacao.updateMany({ where: { id, destinatarioId }, data: { lida: true } });
     return count > 0;
+  },
+
+  /** Abrir uma solicitação dá como lidas todas as notificações dela para quem abriu. */
+  marcarLidasDaSolicitacao(destinatarioId: number, solicitacaoId: number) {
+    return prisma.notificacao.updateMany({ where: { destinatarioId, solicitacaoId, lida: false }, data: { lida: true } });
+  },
+
+  /** Dentre as solicitações informadas, quais ainda são "novas" (não abertas) para o usuário. */
+  async solicitacoesNaoVistas(destinatarioId: number, solicitacaoIds: number[]) {
+    if (solicitacaoIds.length === 0) return new Set<number>();
+    const pendentes = await prisma.notificacao.findMany({
+      where: { destinatarioId, lida: false, tipo: TipoNotificacao.NOVA_SOLICITACAO, solicitacaoId: { in: solicitacaoIds } },
+      select: { solicitacaoId: true },
+      distinct: ['solicitacaoId'],
+    });
+    return new Set(pendentes.map((p) => p.solicitacaoId));
   },
 
   marcarTodasLidas(destinatarioId: number) {

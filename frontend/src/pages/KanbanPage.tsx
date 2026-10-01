@@ -25,7 +25,7 @@ import { ehEquipe, ehGerente, PROXIMA_ACAO, ROTULO_STATUS } from '@/lib/dominio'
 import { formatarCodigo, formatarData } from '@/lib/format'
 import { LIMITE_EM_ATENDIMENTO, STATUS, type SolicitacaoResumo, type Status } from '@/types'
 import { Avatar } from '@/components/ui/Avatar'
-import { CategoriaBadge } from '@/components/ui/Badges'
+import { CategoriaBadge, NovaBadge } from '@/components/ui/Badges'
 import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Input, Select } from '@/components/ui/Campo'
 import { Carregando, ErroCarregamento } from '@/components/ui/Estados'
@@ -350,6 +350,8 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
       onClick={() => !flutuando && navigate(`/solicitacoes/${s.id}`)}
       className={cn(
         'group cursor-pointer rounded-lg border border-slate-200 bg-surface p-3 shadow-sm transition hover:border-indigo-300',
+        // Ainda não aberta por quem está vendo: destaque até o primeiro acesso
+        s.nova && 'border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-400/40',
         arrastavel && 'cursor-grab active:cursor-grabbing',
         pendente && 'animate-pulse',
         flutuando && 'rotate-2 cursor-grabbing shadow-lg ring-2 ring-indigo-300',
@@ -366,6 +368,7 @@ function Cartao({ solicitacao: s, arrastavel, pendente, flutuando }: CartaoProps
         {arrastavel && <GripVertical aria-hidden className="size-4 shrink-0 text-slate-300 group-hover:text-slate-400" />}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
+        {s.nova && <NovaBadge />}
         <span className="font-mono text-xs text-slate-400">{formatarCodigo(s.id)}</span>
         <CategoriaBadge nome={s.categoria.nome} />
       </div>

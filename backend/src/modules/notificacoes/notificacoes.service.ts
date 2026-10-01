@@ -1,5 +1,6 @@
 import { TipoNotificacao, type StatusSolicitacao } from '@prisma/client';
 import { NotFoundError } from '../../errors/AppError';
+import { usuariosRepository } from '../usuarios/usuarios.repository';
 import { ROTULOS_STATUS } from '../solicitacoes/solicitacoes.rules';
 import { notificacoesRepository, type NovaNotificacao } from './notificacoes.repository';
 
@@ -45,6 +46,25 @@ export const notificacoesService = {
 
   async marcarTodasLidas(usuarioId: number) {
     await notificacoesRepository.marcarTodasLidas(usuarioId);
+  },
+
+  async marcarLidasDaSolicitacao(usuarioId: number, solicitacaoId: number) {
+    await notificacoesRepository.marcarLidasDaSolicitacao(usuarioId, solicitacaoId);
+  },
+
+  solicitacoesNaoVistas(usuarioId: number, solicitacaoIds: number[]) {
+    return notificacoesRepository.solicitacoesNaoVistas(usuarioId, solicitacaoIds);
+  },
+
+  /** Avisa toda a equipe de atendimento ativa que há uma nova solicitação na fila. */
+  async novaSolicitacao(solicitacao: SolicitacaoRef & { categoria: { nome: string } }, autor: Autor) {
+    const equipe = await usuariosRepository.listarIdsEquipeAtiva();
+    return enviar(destinatarios(equipe, autor.id), {
+      autorId: autor.id,
+      solicitacaoId: solicitacao.id,
+      tipo: TipoNotificacao.NOVA_SOLICITACAO,
+      mensagem: `${autor.nome} abriu ${codigo(solicitacao.id)} "${solicitacao.titulo}" (${solicitacao.categoria.nome})`.slice(0, 300),
+    });
   },
 
   /** Avisa o solicitante que o status da solicitação dele mudou. */

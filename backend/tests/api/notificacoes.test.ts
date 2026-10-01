@@ -165,3 +165,59 @@ describe('Notificações', () => {
     expect((await request(app).get('/api/notificacoes')).status).toBe(401);
   });
 });
+
+describe('Nova solicitação', () => {
+  let id: number;
+  let categoriaId: number;
+  const novaPara = async (s: Sessao) => {
+    const res = await request(app).get('/api/solicitacoes?status=ABERTO&porPagina=100').set('Authorization', s.token);
+    return res.body.dados.find((x: { id: number }) => x.id === id)?.nova as boolean | undefined;
+  };
+
+  beforeAll(async () => {
+    categoriaId = (await prisma.categoria.findUniqueOrThrow({ where: { nome: 'TI' } })).id;
+    await Promise.all([atendente, gerente, joao].map((s) => request(app).post('/api/notificacoes/lidas').set('Authorization', s.token)));
+    const res = await request(app)
+      .post('/api/solicitacoes')
+      .set('Authorization', joao.token)
+      .send({ titulo: 'Impressora travando papel', descricao: 'A impressora do RH trava a cada 3 folhas.', categoriaId });
+    id = res.body.id;
+  });
+
+  it('avisa toda a equipe, e não o próprio solicitante', async () => {
+    for (const s of [atendente, gerente]) {
+      const { body } = await notificacoesDe(s);
+      expect(body.itens[0]).toMatchObject({ tipo: 'NOVA_SOLICITACAO', lida: false, solicitacaoId: id, autor: { nome: 'João Souza' } });
+      expect(body.itens[0].mensagem).toContain('Impressora travando papel');
+    }
+    expect((await notificacoesDe(joao)).body.naoLidas).toBe(0);
+  });
+
+  it('aparece como "nova" para a equipe até cada pessoa abrir', async () => {
+    expect(await novaPara(atendente)).toBe(true);
+    expect(await novaPara(gerente)).toBe(true);
+    expect(await novaPara(joao)).toBe(false); // quem abriu não recebe destaque
+
+    await request(app).get(`/api/solicitacoes/${id}`).set('Authorization', atendente.token);
+
+    expect(await novaPara(atendente)).toBe(false);
+    expect(await novaPara(gerente)).toBe(true); // o acesso é por pessoa
+    expect((await notificacoesDe(atendente)).body.naoLidas).toBe(0); // e o sino acompanha
+  });
+
+  it('usuário desativado não é avisado', async () => {
+    const { body: novo } = await request(app)
+      .post('/api/usuarios')
+      .set('Authorization', gerente.token)
+      .send({ nome: 'Atendente Temporário', usuario: `temp.${Date.now().toString(36)}`, senha: 'temp123', perfil: 'ATENDENTE' });
+    await request(app).patch(`/api/usuarios/${novo.id}`).set('Authorization', gerente.token).send({ ativo: false });
+
+    const { body: criada } = await request(app)
+      .post('/api/solicitacoes')
+      .set('Authorization', maria.token)
+      .send({ titulo: 'Cadeira quebrada', descricao: 'O encosto da cadeira soltou.', categoriaId });
+    const avisados = await prisma.notificacao.findMany({ where: { solicitacaoId: criada.id }, select: { destinatarioId: true } });
+    expect(avisados.map((a) => a.destinatarioId)).not.toContain(novo.id);
+    expect(avisados).toHaveLength(2); // atendente e gerente do seed
+  });
+});

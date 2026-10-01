@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { comentariosApi, dashboardApi, solicitacoesApi } from '@/api/endpoints'
 import type { FiltrosSolicitacao, SolicitacaoInput, Status } from '@/types'
@@ -19,11 +20,23 @@ export function useListaSolicitacoes(filtros: FiltrosSolicitacao) {
 }
 
 export function useSolicitacao(id: number) {
-  return useQuery({
+  const queryClient = useQueryClient()
+  const consulta = useQuery({
     queryKey: chaves.detalhe(id),
     queryFn: () => solicitacoesApi.obter(id),
     enabled: Number.isInteger(id) && id > 0,
   })
+
+  // Abrir a solicitação marca as notificações dela como lidas no servidor: atualiza o sino
+  // e as listas para o destaque "Nova" sumir imediatamente
+  const carregadaEm = consulta.dataUpdatedAt
+  useEffect(() => {
+    if (!carregadaEm) return
+    void queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
+    void queryClient.invalidateQueries({ queryKey: ['solicitacoes', 'lista'] })
+  }, [carregadaEm, queryClient])
+
+  return consulta
 }
 
 export function useResumoDashboard() {

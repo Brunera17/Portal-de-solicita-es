@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowRightLeft, Bell, CheckCheck, MessageSquare } from 'lucide-react'
+import { ArrowRightLeft, Bell, CheckCheck, FilePlus2, MessageSquare } from 'lucide-react'
 import { useNotificacoes } from '@/hooks/useNotificacoes'
 import { cn } from '@/lib/cn'
 import { formatarRelativo } from '@/lib/format'
@@ -105,6 +105,8 @@ export function NotificacoesSino({ posicao }: Props) {
                         <span className="absolute -bottom-1 -right-1 grid size-4.5 place-items-center rounded-full bg-surface text-slate-500 ring-1 ring-slate-200">
                           {n.tipo === 'NOVO_COMENTARIO' ? (
                             <MessageSquare aria-hidden className="size-2.5" />
+                          ) : n.tipo === 'NOVA_SOLICITACAO' ? (
+                            <FilePlus2 aria-hidden className="size-2.5" />
                           ) : (
                             <ArrowRightLeft aria-hidden className="size-2.5" />
                           )}

@@ -12,7 +12,7 @@ export const solicitacoesController = {
 
   async obter(req: Request, res: Response) {
     const { id } = idParamSchema.parse(req.params);
-    res.json(await solicitacoesService.obter(id, usuarioDaRequisicao(req)));
+    res.json(await solicitacoesService.abrir(id, usuarioDaRequisicao(req)));
   },
 
   async criar(req: Request, res: Response) {

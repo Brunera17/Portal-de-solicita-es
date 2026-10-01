@@ -128,7 +128,7 @@ model Comentario {
   @@map("comentarios")
 }
 
-/// Avisos para o usuário (sino). Gerados pelo backend quando o status muda ou chega comentário.
+/// Avisos para o usuário (sino): nova solicitação, mudança de status, comentário e redesignação.
 model Notificacao {
   id             Int             @id @default(autoincrement())
   destinatarioId Int             @map("destinatario_id")

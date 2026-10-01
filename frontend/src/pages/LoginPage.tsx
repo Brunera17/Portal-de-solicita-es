@@ -62,7 +62,7 @@ export function LoginPage() {
     <div className="flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <span className="grid size-12 place-items-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+          <span className="grid size-12 place-items-center rounded-xl bg-marca text-white shadow-lg shadow-indigo-600/20">
             <ClipboardList aria-hidden className="size-6" />
           </span>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">Portal de Solicitações</h1>

@@ -20,7 +20,7 @@ const linkAdmin = { to: '/admin', rotulo: 'Administração', icone: Settings, en
 function Marca() {
   return (
     <Link to="/" className="flex items-center gap-2.5 font-semibold text-slate-900">
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-indigo-600 text-white">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-marca text-white">
         <ClipboardList aria-hidden className="size-4" />
       </span>
       <span className="leading-tight">
@@ -140,7 +140,7 @@ export function AppLayout() {
           <Menu aria-hidden className="size-5" />
         </button>
         <Link to="/" className="flex items-center gap-2 font-semibold text-slate-900">
-          <span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-white">
+          <span className="grid size-8 place-items-center rounded-lg bg-marca text-white">
             <ClipboardList aria-hidden className="size-4" />
           </span>
           Portal de Solicitações
